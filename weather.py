@@ -91,10 +91,8 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
     def name(self):
         """Return the name of the sensor."""
         name = self._config.get(CONF_NAME)
-        if name is not None:
-            return f"{name}{' Hourly' if self._hourly else ''}"
-
-        return f"{DEFAULT_NAME}{name_appendix}"
+        name_suffix = " Hourly" if self._hourly else ""
+        return f"{name if name else DEFAULT_NAME}{name_suffix}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:

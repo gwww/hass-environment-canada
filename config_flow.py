@@ -27,7 +27,7 @@ async def validate_input(hass: core.HomeAssistant, data):
         longitude = hass.config.longitude
 
     ec = ECWeather(
-        station_id=station, coordinates=(latitude, longitude), language=language
+        station_id=station, coordinates=(latitude, longitude), language=language.lower()
     )
     try:
         await ec.update()
@@ -35,7 +35,7 @@ async def validate_input(hass: core.HomeAssistant, data):
         _LOGGER.error("Could not connect: %s", err)
         raise CannotConnect from err
 
-    return {"title": ec.station_id}
+    return {"title": ec.station_id, "name": ec.metadata["location"]}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -47,14 +47,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
-            # await self.async_set_unique_id(
-            #     base_unique_id(user_input[CONF_LATITUDE], user_input[CONF_LONGITUDE])
-            # )
-            # self._abort_if_unique_id_configured()
             try:
                 info = await validate_input(self.hass, user_input)
                 user_input[CONF_STATION] = info["title"]
-                return self.async_create_entry(title=info["title"], data=user_input)
+                user_input[CONF_NAME] = info["name"]
+                self.data = user_input
+                return await self.async_step_name()
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception:  # pylint: disable=broad-except
@@ -64,11 +62,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         msg = "Can use only one location specifier."
         data_schema = vol.Schema(
             {
-                vol.Optional(CONF_NAME, default="Environment Canada"): str,
                 vol.Optional(CONF_STATION): str,
                 vol.Optional(CONF_LATITUDE, default=self.hass.config.latitude): cv.latitude,
                 vol.Optional(CONF_LONGITUDE, default=self.hass.config.longitude): cv.longitude,
-                vol.Optional(CONF_LANGUAGE, default="english"): vol.In(["english", "french"]),
+                vol.Optional(CONF_LANGUAGE, default="English"): vol.In(["English", "French"]),
                 # vol.Optional(CONF_NAME, default="Environment Canada"): str,
                 # vol.Exclusive(CONF_STATION, "location", msg=msg): str,
                 # vol.Exclusive("coordinates", "location", msg=msg): {
@@ -87,6 +84,24 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user", data_schema=data_schema, errors=errors
+        )
+
+
+    async def async_step_name(self, user_input=None):
+        """Handle the name step."""
+        errors = {}
+        if user_input is not None:
+            self.data[CONF_NAME] = user_input[CONF_NAME]
+            return self.async_create_entry(title=user_input[CONF_NAME], data=self.data)
+
+        data_schema = vol.Schema(
+            {
+                vol.Required(CONF_NAME, default=self.data[CONF_NAME]): str,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="name", data_schema=data_schema, errors=errors
         )
 
 
