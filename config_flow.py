@@ -55,29 +55,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         data_schema = vol.Schema(
             {
                 vol.Optional(CONF_STATION): str,
-                vol.Optional(CONF_LATITUDE, default=self.hass.config.latitude): cv.latitude,
-                vol.Optional(CONF_LONGITUDE, default=self.hass.config.longitude): cv.longitude,
-                vol.Optional(CONF_LANGUAGE, default="English"): vol.In(["English", "French"]),
-                # vol.Optional(CONF_NAME, default="Environment Canada"): str,
-                # vol.Exclusive(CONF_STATION, "location", msg=msg): str,
-                # vol.Exclusive("coordinates", "location", msg=msg): {
-                #     vol.Required(
-                #         CONF_LATITUDE, default=self.hass.config.latitude
-                #     ): cv.latitude,
-                #     vol.Required(
-                #         CONF_LONGITUDE, default=self.hass.config.longitude
-                #     ): cv.longitude,
-                # },
-                # vol.Optional(CONF_LANGUAGE, default="english"): vol.In(
-                #     ["english", "french"]
-                # ),
+                vol.Optional(
+                    CONF_LATITUDE, default=self.hass.config.latitude
+                ): cv.latitude,
+                vol.Optional(
+                    CONF_LONGITUDE, default=self.hass.config.longitude
+                ): cv.longitude,
+                vol.Optional(CONF_LANGUAGE, default="English"): vol.In(
+                    ["English", "French"]
+                ),
             }
         )
 
         return self.async_show_form(
             step_id="user", data_schema=data_schema, errors=errors
         )
-
 
     async def async_step_name(self, user_input=None):
         """Handle the name step."""
@@ -95,7 +87,3 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="name", data_schema=data_schema, errors=errors
         )
-
-
-class CannotConnect(exceptions.HomeAssistantError):
-    """Error to indicate we cannot connect."""

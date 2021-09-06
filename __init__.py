@@ -99,7 +99,9 @@ class ECWeatherData:
         language = self._config[CONF_LANGUAGE]
 
         self._weather_data = env_canada.ECWeather(
-            station_id=station, coordinates=(latitude, longitude), language=language.lower()
+            station_id=station,
+            coordinates=(latitude, longitude),
+            language=language.lower(),
         )
 
         return True
