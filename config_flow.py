@@ -15,6 +15,12 @@ from .const import CONF_LANGUAGE, CONF_STATION, DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
+def already_configured(hass, data):
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.data.get(CONF_STATION) == data[CONF_STATION] and entry.data.get(CONF_LANGUAGE) == data[CONF_LANGUAGE]:
+            return True
+    return False
+
 async def validate_input(hass: core.HomeAssistant, data):
     """Validate the user input allows us to connect."""
     latitude = data.get(CONF_LATITUDE)
@@ -26,6 +32,9 @@ async def validate_input(hass: core.HomeAssistant, data):
         station_id=station, coordinates=(latitude, longitude), language=language.lower()
     )
     await ec.update()
+    if ec.station_id is None:
+        raise BadStationId
+
     return {"title": ec.station_id, "name": ec.metadata["location"]}
 
 
@@ -42,8 +51,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 info = await validate_input(self.hass, user_input)
                 user_input[CONF_STATION] = info["title"]
                 user_input[CONF_NAME] = info["name"]
-                self.data = user_input
-                return await self.async_step_name()
+
+                if not already_configured(self.hass, user_input):
+                    self.data = user_input
+                    return await self.async_step_name()
+
+                errors["base"] = "already_configured"
+
+            except BadStationId:
+                errors["base"] = "bad_station_id"
             except aiohttp.ClientResponseError as err:
                 errors["base"] = "cannot_connect"
             except vol.error.MultipleInvalid:
@@ -87,3 +103,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="name", data_schema=data_schema, errors=errors
         )
+
+
+class BadStationId(exceptions.HomeAssistantError):
+    """Error to indicate station ID is missing, invalid, or not in EC database."""

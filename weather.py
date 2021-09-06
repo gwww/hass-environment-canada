@@ -1,9 +1,12 @@
 """Support for Environment Canada (EC) weather service."""
+import datetime
 import logging
 
 from homeassistant.components.weather import (
     ATTR_FORECAST_CONDITION,
+    ATTR_FORECAST_PRECIPITATION_PROBABILITY,
     ATTR_FORECAST_TEMP,
+    ATTR_FORECAST_TEMP_LOW,
     ATTR_FORECAST_TIME,
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_PRESSURE,
@@ -29,6 +32,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt
 from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.pressure import convert as convert_pressure
 
@@ -37,6 +41,7 @@ from .const import (
     ATTR_FORECAST_PRECIPITATION,
     ATTR_MAP,
     CONF_LANGUAGE,
+    CONF_STATION,
     DOMAIN,
     EC_ICON_TO_HA_CONDITION_MAP,
     FORECAST_MAP,
@@ -75,7 +80,7 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
     """Implementation of a EC weather condition."""
 
     def __init__(self, coordinator, config, is_metric, hourly):
-        """Initialise the platform with a data instance and site."""
+        """Initialise the platform."""
         super().__init__(coordinator)
         self._config = config
         self._is_metric = is_metric
@@ -85,7 +90,8 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
     def unique_id(self):
         """Return unique ID."""
         suffix = "-hourly" if self._hourly else ""
-        return f"{self._config[CONF_LATITUDE]}-{self._config[CONF_LONGITUDE]}-{self._config[CONF_LANGUAGE]}{suffix}"
+        # return f"{self._config[CONF_LATITUDE]}-{self._config[CONF_LONGITUDE]}-{self._config[CONF_LANGUAGE]}{suffix}"
+        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}{suffix}"
 
     @property
     def name(self):
@@ -152,37 +158,21 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
         """Return the attribution."""
         return ATTRIBUTION
 
-    # @property
-    # def forecast(self):
-    #     """Return the forecast array."""
-    #     if self._hourly:
-    #         forecast = self.coordinator.data.hourly_forecast
-    #     else:
-    #         forecast = self.coordinator.data.daily_forecast
+    @property
+    def visibility(self):
+        """Return the visibility."""
+        visibility = self.coordinator.data.conditions.get("visibility", {}).get("value")
+        if self._is_metric or visibility is None:
+            return visibility
 
-    #     required_keys = {ATTR_FORECAST_TEMP, ATTR_FORECAST_TIME}
-    #     ha_forecast = []
-    #     for item in forecast:
-    #         if not set(item).issuperset(required_keys):
-    #             continue
-    #         ha_item = {
-    #             k: item[v]
-    #             for k, v in FORECAST_MAP.items()
-    #             if item.get(v) is not None
-    #         }
-    #         if not self._is_metric and ATTR_FORECAST_PRECIPITATION in ha_item:
-    #             precip_inches = convert_distance(
-    #                 ha_item[ATTR_FORECAST_PRECIPITATION],
-    #                 LENGTH_MILLIMETERS,
-    #                 LENGTH_INCHES,
-    #             )
-    #             ha_item[ATTR_FORECAST_PRECIPITATION] = round(precip_inches, 2)
-    #         if ha_item.get(ATTR_FORECAST_CONDITION):
-    #             ha_item[ATTR_FORECAST_CONDITION] = format_condition(
-    #                 ha_item[ATTR_FORECAST_CONDITION]
-    #             )
-    #         ha_forecast.append(ha_item)
-    #     return ha_forecast
+        visibility = convert_distance(visibility, LENGTH_KILOMETERS, LENGTH_MILES)
+        return visibility
+        # return int(round(visibility))
+
+    @property
+    def forecast(self):
+        """Return the forecast array."""
+        return get_forecast(self.coordinator.data, self._hourly)
 
     @property
     def device_info(self):
@@ -194,3 +184,68 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
             "default_name": "Forecast",
             "entry_type": "service",
         }
+
+
+def get_forecast(data, hourly_forecast):
+    """Build the forecast array."""
+    forecast_array = []
+
+    if not hourly_forecast:
+        half_days = data.daily_forecast
+
+        today = {
+            ATTR_FORECAST_TIME: dt.now().isoformat(),
+            ATTR_FORECAST_CONDITION: format_condition(half_days[0]["icon_code"]),
+            ATTR_FORECAST_PRECIPITATION_PROBABILITY: int(
+                half_days[0]["precip_probability"]
+            ),
+        }
+
+        if half_days[0]["temperature_class"] == "high":
+            today.update(
+                {
+                    ATTR_FORECAST_TEMP: int(half_days[0]["temperature"]),
+                    ATTR_FORECAST_TEMP_LOW: int(half_days[1]["temperature"]),
+                }
+            )
+            half_days = half_days[2:]
+        else:
+            today.update(
+                {
+                    ATTR_FORECAST_TEMP: None,
+                    ATTR_FORECAST_TEMP_LOW: int(half_days[0]["temperature"]),
+                }
+            )
+            half_days = half_days[1:]
+
+        forecast_array.append(today)
+
+        for day, high, low in zip(range(1, 6), range(0, 9, 2), range(1, 10, 2)):
+            forecast_array.append(
+                {
+                    ATTR_FORECAST_TIME: (
+                        dt.now() + datetime.timedelta(days=day)
+                    ).isoformat(),
+                    ATTR_FORECAST_TEMP: int(half_days[high]["temperature"]),
+                    ATTR_FORECAST_TEMP_LOW: int(half_days[low]["temperature"]),
+                    ATTR_FORECAST_CONDITION: format_condition(half_days[high]["icon_code"]),
+                    ATTR_FORECAST_PRECIPITATION_PROBABILITY: int(
+                        half_days[high]["precip_probability"]
+                    ),
+                }
+            )
+
+    else:
+        for hour in data.hourly_forecast:
+            forecast_array.append(
+                {
+                    ATTR_FORECAST_TIME: hour["period"],
+                    ATTR_FORECAST_TEMP: int(hour["temperature"]),
+                    ATTR_FORECAST_CONDITION: format_condition(hour["icon_code"]),
+                    ATTR_FORECAST_PRECIPITATION_PROBABILITY: int(
+                        hour["precip_probability"]
+                    ),
+                }
+            )
+
+    return forecast_array
