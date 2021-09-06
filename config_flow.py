@@ -22,19 +22,10 @@ async def validate_input(hass: core.HomeAssistant, data):
     station = data.get(CONF_STATION)
     language = data.get(CONF_LANGUAGE)
 
-    if station is None and latitude is None and longitude is None:
-        latitude = hass.config.latitude
-        longitude = hass.config.longitude
-
     ec = ECWeather(
         station_id=station, coordinates=(latitude, longitude), language=language.lower()
     )
-    try:
-        await ec.update()
-    except aiohttp.ClientError as err:
-        _LOGGER.error("Could not connect: %s", err)
-        raise CannotConnect from err
-
+    await ec.update()
     return {"title": ec.station_id, "name": ec.metadata["location"]}
 
 
@@ -53,13 +44,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_NAME] = info["name"]
                 self.data = user_input
                 return await self.async_step_name()
-            except CannotConnect:
+            except aiohttp.ClientResponseError as err:
                 errors["base"] = "cannot_connect"
+            except vol.error.MultipleInvalid:
+                errors["base"] = "config_error"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
-        msg = "Can use only one location specifier."
         data_schema = vol.Schema(
             {
                 vol.Optional(CONF_STATION): str,
