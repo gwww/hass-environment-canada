@@ -2,6 +2,7 @@
 from datetime import timedelta
 import logging
 from random import randrange
+from homeassistant.util.dt import utcnow
 
 import env_canada
 
@@ -24,9 +25,10 @@ from .const import (
     DOMAIN,
 )
 
-PLATFORMS = ["weather"]
+PLATFORMS = ["sensor", "weather"]
 
 DEFAULT_UPDATE_INTERVAL = timedelta(minutes=15)
+STALE_OBSERVATION = timedelta(minutes=20)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,13 +70,23 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass, _LOGGER, name=DOMAIN, update_interval=DEFAULT_UPDATE_INTERVAL
         )
+        self._last_update_success_time = None
 
     async def _async_update_data(self):
         """Fetch data from EC."""
         try:
-            return await self.weather.fetch_data()
+            ret = await self.weather.fetch_data()
+            self._last_update_success_time = utcnow()
+            return ret
         except Exception as err:
             raise UpdateFailed(f"Update failed: {err}") from err
+
+    def stale_observation(self):
+        """Returns is the latest observation is older than refresh time."""
+        stale = True
+        if self._last_update_success_time:
+            stale = (utcnow() - self._last_update_success_time > STALE_OBSERVATION)
+        return stale
 
 
 class ECWeatherData:

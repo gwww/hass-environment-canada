@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from homeassistant.components.sensor import SensorEntityDescription
+
 """Constants for Met component."""
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
@@ -30,14 +35,28 @@ from homeassistant.components.weather import (
     DOMAIN as WEATHER_DOMAIN,
 )
 
+from homeassistant.const import (
+    DEGREE,
+    DEVICE_CLASS_HUMIDITY,
+    DEVICE_CLASS_PRESSURE,
+    DEVICE_CLASS_TEMPERATURE,
+    LENGTH_KILOMETERS,
+    LENGTH_METERS,
+    LENGTH_MILES,
+    PERCENTAGE,
+    PRESSURE_INHG,
+    PRESSURE_PA,
+    SPEED_KILOMETERS_PER_HOUR,
+    SPEED_MILES_PER_HOUR,
+    TEMP_CELSIUS,
+)
+
 DOMAIN = "environment_canada2"
 
 CONF_LANGUAGE = "language"
 CONF_STATION = "station"
 
 ATTRIBUTION = "Data provided by Environment Canada"
-
-# ENTITY_ID_SENSOR_FORMAT_HOME = f"{WEATHER_DOMAIN}.met_{HOME_LOCATION_NAME}"
 
 # Icon codes from https://dd.weather.gc.ca/citypage_weather/docs/forecast_conditions_icon_code_descriptions_e.csv
 EC_ICON_TO_HA_CONDITION_MAP = {
@@ -89,156 +108,116 @@ EC_ICON_TO_HA_CONDITION_MAP = {
 }
 
 
-CONDITIONS_MAP = {
-    ATTR_CONDITION_CLEAR_NIGHT: {"clearsky_night"},
-    ATTR_CONDITION_CLOUDY: {"cloudy_night", "cloudy_day", "cloudy"},
-    ATTR_CONDITION_FOG: {"fog", "fog_day", "fog_night"},
-    ATTR_CONDITION_LIGHTNING_RAINY: {
-        "heavyrainandthunder",
-        "heavyrainandthunder_day",
-        "heavyrainandthunder_night",
-        "heavyrainshowersandthunder",
-        "heavyrainshowersandthunder_day",
-        "heavyrainshowersandthunder_night",
-        "heavysleetandthunder",
-        "heavysleetandthunder_day",
-        "heavysleetandthunder_night",
-        "heavysleetshowersandthunder",
-        "heavysleetshowersandthunder_day",
-        "heavysleetshowersandthunder_night",
-        "heavysnowandthunder",
-        "heavysnowandthunder_day",
-        "heavysnowandthunder_night",
-        "heavysnowshowersandthunder",
-        "heavysnowshowersandthunder_day",
-        "heavysnowshowersandthunder_night",
-        "lightrainandthunder",
-        "lightrainandthunder_day",
-        "lightrainandthunder_night",
-        "lightrainshowersandthunder",
-        "lightrainshowersandthunder_day",
-        "lightrainshowersandthunder_night",
-        "lightsleetandthunder",
-        "lightsleetandthunder_day",
-        "lightsleetandthunder_night",
-        "lightsnowandthunder",
-        "lightsnowandthunder_day",
-        "lightsnowandthunder_night",
-        "lightssleetshowersandthunder",
-        "lightssleetshowersandthunder_day",
-        "lightssleetshowersandthunder_night",
-        "lightssnowshowersandthunder",
-        "lightssnowshowersandthunder_day",
-        "lightssnowshowersandthunder_night",
-        "rainandthunder",
-        "rainandthunder_day",
-        "rainandthunder_night",
-        "rainshowersandthunder",
-        "rainshowersandthunder_day",
-        "rainshowersandthunder_night",
-        "sleetandthunder",
-        "sleetandthunder_day",
-        "sleetandthunder_night",
-        "sleetshowersandthunder",
-        "sleetshowersandthunder_day",
-        "sleetshowersandthunder_night",
-        "snowshowersandthunder",
-        "snowshowersandthunder_day",
-        "snowshowersandthunder_night",
-    },
-    ATTR_CONDITION_PARTLYCLOUDY: {
-        "fair",
-        "fair_day",
-        "fair_night",
-        "partlycloudy",
-        "partlycloudy_day",
-        "partlycloudy_night",
-    },
-    ATTR_CONDITION_POURING: {
-        "heavyrain",
-        "heavyrain_day",
-        "heavyrain_night",
-        "heavyrainshowers",
-        "heavyrainshowers_day",
-        "heavyrainshowers_night",
-    },
-    ATTR_CONDITION_RAINY: {
-        "lightrain",
-        "lightrain_day",
-        "lightrain_night",
-        "lightrainshowers",
-        "lightrainshowers_day",
-        "lightrainshowers_night",
-        "rain",
-        "rain_day",
-        "rain_night",
-        "rainshowers",
-        "rainshowers_day",
-        "rainshowers_night",
-    },
-    ATTR_CONDITION_SNOWY: {
-        "heavysnow",
-        "heavysnow_day",
-        "heavysnow_night",
-        "heavysnowshowers",
-        "heavysnowshowers_day",
-        "heavysnowshowers_night",
-        "lightsnow",
-        "lightsnow_day",
-        "lightsnow_night",
-        "lightsnowshowers",
-        "lightsnowshowers_day",
-        "lightsnowshowers_night",
-        "snow",
-        "snow_day",
-        "snow_night",
-        "snowandthunder",
-        "snowandthunder_day",
-        "snowandthunder_night",
-        "snowshowers",
-        "snowshowers_day",
-        "snowshowers_night",
-    },
-    ATTR_CONDITION_SNOWY_RAINY: {
-        "heavysleet",
-        "heavysleet_day",
-        "heavysleet_night",
-        "heavysleetshowers",
-        "heavysleetshowers_day",
-        "heavysleetshowers_night",
-        "lightsleet",
-        "lightsleet_day",
-        "lightsleet_night",
-        "lightsleetshowers",
-        "lightsleetshowers_day",
-        "lightsleetshowers_night",
-        "sleet",
-        "sleet_day",
-        "sleet_night",
-        "sleetshowers",
-        "sleetshowers_day",
-        "sleetshowers_night",
-    },
-    ATTR_CONDITION_SUNNY: {"clearsky_day", "clearsky"},
-}
+@dataclass
+class ECSensorEntityDescription(SensorEntityDescription):
+    """Class describing ECSensor entities."""
+    unit_convert: str | None = None
 
-FORECAST_MAP = {
-    ATTR_FORECAST_CONDITION: "condition",
-    ATTR_FORECAST_PRECIPITATION: "precipitation",
-    ATTR_FORECAST_PRECIPITATION_PROBABILITY: "precipitation_probability",
-    ATTR_FORECAST_TEMP: "temperature",
-    ATTR_FORECAST_TEMP_LOW: "templow",
-    ATTR_FORECAST_TIME: "datetime",
-    ATTR_FORECAST_WIND_BEARING: "wind_bearing",
-    ATTR_FORECAST_WIND_SPEED: "wind_speed",
-}
 
-ATTR_MAP = {
-    ATTR_WEATHER_ATTRIBUTION: "attribution",
-    ATTR_WEATHER_HUMIDITY: "humidity",
-    ATTR_WEATHER_PRESSURE: "pressure",
-    ATTR_WEATHER_TEMPERATURE: "temperature",
-    ATTR_WEATHER_VISIBILITY: "visibility",
-    ATTR_WEATHER_WIND_BEARING: "wind_bearing",
-    ATTR_WEATHER_WIND_SPEED: "wind_speed",
-}
+SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
+    ECSensorEntityDescription(
+        key="dewpoint",
+        name="Dew Point",
+        icon=None,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="temperature",
+        name="Temperature",
+        icon=None,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="low_temp",
+        name="Low Temperature",
+        icon=None,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="high_temp",
+        name="High Temperature",
+        icon=None,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="wind_chill",
+        name="Wind Chill",
+        icon=None,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="humidex",
+        name="Humidex",
+        icon=None,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="humidity",
+        name="Humidity",
+        icon=None,
+        device_class=DEVICE_CLASS_HUMIDITY,
+        native_unit_of_measurement=PERCENTAGE,
+        unit_convert=PERCENTAGE,
+    ),
+    ECSensorEntityDescription(
+        key="wind_speed",
+        name="Wind Speed",
+        icon="mdi:weather-windy",
+        device_class=None,
+        native_unit_of_measurement=SPEED_KILOMETERS_PER_HOUR,
+        unit_convert=SPEED_MILES_PER_HOUR,
+    ),
+    ECSensorEntityDescription(
+        key="wind_gust",
+        name="Wind Gust",
+        icon="mdi:weather-windy",
+        device_class=None,
+        native_unit_of_measurement=SPEED_KILOMETERS_PER_HOUR,
+        unit_convert=SPEED_MILES_PER_HOUR,
+    ),
+    ECSensorEntityDescription(
+        key="wind_bearing",
+        name="Wind Bearing",
+        icon="mdi:compass-rose",
+        device_class=None,
+        native_unit_of_measurement=DEGREE,
+        unit_convert=DEGREE,
+    ),
+    ECSensorEntityDescription(
+        key="pressure",
+        name="Barometric Pressure",
+        icon=None,
+        device_class=DEVICE_CLASS_PRESSURE,
+        native_unit_of_measurement=PRESSURE_PA,
+        unit_convert=PRESSURE_INHG,
+    ),
+    ECSensorEntityDescription(
+        key="visibility",
+        name="Visibility",
+        icon="mdi:eye",
+        device_class=None,
+        native_unit_of_measurement=LENGTH_KILOMETERS,
+        unit_convert=LENGTH_MILES,
+    ),
+)
+
+#     'condition': {'label': 'Condition', 'value': 'Mostly Cloudy'},
+#     'icon_code': {'label': 'Icon Code', 'value': '03'},
+#     'pop': {'label': 'Chance of Precip.', 'value': None},
+#     'precip_yesterday': {'label': 'Precipitation Yesterday', 'unit': 'mm', 'value': 0.0},
+#     'tendency': {'label': 'Tendency', 'value': 'falling'},
+#     'text_summary': {'label': 'Forecast', 'value': 'Tonight. Partly cloudy. Low 9.'},
+#     'uv_index': {'label': 'UV Index', 'value': 4},
+#     'wind_dir': {'label': 'Wind Direction', 'value': 'SSE'},

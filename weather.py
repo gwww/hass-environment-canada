@@ -39,12 +39,10 @@ from homeassistant.util.pressure import convert as convert_pressure
 from .const import (
     ATTRIBUTION,
     ATTR_FORECAST_PRECIPITATION,
-    ATTR_MAP,
     CONF_LANGUAGE,
     CONF_STATION,
     DOMAIN,
     EC_ICON_TO_HA_CONDITION_MAP,
-    FORECAST_MAP,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,7 +88,8 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
     def unique_id(self):
         """Return unique ID."""
         suffix = "-hourly" if self._hourly else ""
-        # return f"{self._config[CONF_LATITUDE]}-{self._config[CONF_LONGITUDE]}-{self._config[CONF_LANGUAGE]}{suffix}"
+
+        # The combination of station and language are unique for all EC weather reporting
         return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}{suffix}"
 
     @property
