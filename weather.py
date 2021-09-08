@@ -36,6 +36,7 @@ from homeassistant.util import dt
 from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.pressure import convert as convert_pressure
 
+from . import ECBaseEntity
 from .const import (
     ATTRIBUTION,
     ATTR_FORECAST_PRECIPITATION,
@@ -74,7 +75,7 @@ def format_condition(ec_icon: str) -> str:
     return EC_ICON_TO_HA_CONDITION_MAP.get(icon_number)
 
 
-class ECWeather(CoordinatorEntity, WeatherEntity):
+class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
     """Implementation of a EC weather condition."""
 
     def __init__(self, coordinator, config, is_metric, hourly):
@@ -90,7 +91,7 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
         suffix = "-hourly" if self._hourly else ""
 
         # The combination of station and language are unique for all EC weather reporting
-        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}{suffix}"
+        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-weather{suffix}"
 
     @property
     def name(self):
@@ -172,17 +173,6 @@ class ECWeather(CoordinatorEntity, WeatherEntity):
     def forecast(self):
         """Return the forecast array."""
         return get_forecast(self.coordinator.data, self._hourly)
-
-    @property
-    def device_info(self):
-        """Device info."""
-        return {
-            "identifiers": {(DOMAIN,)},
-            "manufacturer": "Environment Canada",
-            "model": "Forecast",
-            "default_name": "Forecast",
-            "entry_type": "service",
-        }
 
 
 def get_forecast(data, hourly_forecast):

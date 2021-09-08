@@ -57,6 +57,27 @@ async def async_unload_entry(hass, config_entry):
     return unload_ok
 
 
+class ECBaseEntity:
+    """Common base for EC weather."""
+
+    def get_value(self, key):
+        value = self.coordinator.data.conditions.get(key, {}).get("value")
+        if value:
+            return value
+        return self.coordinator.data.hourly_forecast[0].get(key)
+
+    @property
+    def device_info(self):
+        """Device info."""
+        return {
+            "identifiers": {(DOMAIN,)},
+            "manufacturer": "Environment Canada",
+            "model": "Weather",
+            "default_name": "Weather",
+            "entry_type": "service",
+        }
+
+
 class ECDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching EC data."""
 

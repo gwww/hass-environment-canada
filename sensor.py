@@ -20,6 +20,7 @@ from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.dt import utcnow
 from homeassistant.util.pressure import convert as convert_pressure
 
+from . import ECBaseEntity
 from .const import (
     ATTRIBUTION,
     CONF_LANGUAGE,
@@ -42,7 +43,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
 
 
-class ECSensor(CoordinatorEntity, SensorEntity):
+class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     """An EC Sensor Entity."""
 
     entity_description: ECSensorEntityDescription
@@ -54,6 +55,7 @@ class ECSensor(CoordinatorEntity, SensorEntity):
         self._latitude = config[CONF_LATITUDE]
         self._longitude = config[CONF_LONGITUDE]
         self._station = config[CONF_STATION]
+        self._attrs = None
         self.entity_description = description
 
         self._attr_name = f"{self._station} {description.name}"
@@ -64,9 +66,8 @@ class ECSensor(CoordinatorEntity, SensorEntity):
     def native_value(self):
         """Return the state."""
         key = self.entity_description.key
-        value = self.coordinator.data.conditions.get(self.entity_description.key, {}).get("value")
+        value = self.get_value(key)
         if value is None:
-            # breakpoint()
             return None
 
         if key == "pressure":
@@ -100,7 +101,7 @@ class ECSensor(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self):
         """Return a unique_id for this entity."""
-        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}{self.entity_description.key}"
+        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self.entity_description.key}"
 
     @property
     def available(self):
