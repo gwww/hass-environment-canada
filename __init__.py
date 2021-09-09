@@ -22,8 +22,8 @@ from homeassistant.util.distance import convert as convert_distance
 import homeassistant.util.dt as dt_util
 
 from .const import (
+    ATTR_OBSERVATION_TIME,
     ATTR_STATION,
-    ATTR_UPDATED,
     CONF_LANGUAGE,
     CONF_STATION,
     DOMAIN,
@@ -32,7 +32,6 @@ from .const import (
 PLATFORMS = ["sensor", "weather"]
 
 DEFAULT_UPDATE_INTERVAL = timedelta(minutes=15)
-STALE_OBSERVATION = timedelta(minutes=20)
 ATTRIBUTION_EN = "Data provided by Environment Canada"
 ATTRIBUTION_FR = "Données fournies par Environnement Canada"
 
@@ -82,7 +81,7 @@ class ECBaseEntity:
         """Return the state attributes of the device."""
         return {
             ATTR_ATTRIBUTION: self.attribution,
-            ATTR_UPDATED: self.coordinator.data.metadata.get("timestamp"),
+            ATTR_OBSERVATION_TIME: self.coordinator.data.metadata.get("timestamp"),
             ATTR_LOCATION: self.coordinator.data.metadata.get("location"),
             ATTR_STATION: self.coordinator.data.metadata.get("station"),
         }
@@ -123,13 +122,6 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._last_update_success_time = utcnow()
         return ret
-
-    def stale_observation(self):
-        """Returns is the latest observation is older than refresh time."""
-        stale = True
-        if self._last_update_success_time:
-            stale = (utcnow() - self._last_update_success_time > STALE_OBSERVATION)
-        return stale
 
 
 class ECWeatherData:

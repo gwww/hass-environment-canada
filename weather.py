@@ -38,7 +38,6 @@ from homeassistant.util.pressure import convert as convert_pressure
 
 from . import ECBaseEntity
 from .const import (
-    ATTRIBUTION,
     ATTR_FORECAST_PRECIPITATION,
     CONF_LANGUAGE,
     CONF_STATION,

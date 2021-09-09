@@ -56,8 +56,8 @@ from homeassistant.const import (
 
 DOMAIN = "environment_canada2"
 
+ATTR_OBSERVATION_TIME = "observation_time"
 ATTR_STATION = "station"
-ATTR_UPDATED = "updated"
 
 CONF_LANGUAGE = "language"
 CONF_STATION = "station"

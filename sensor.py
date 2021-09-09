@@ -90,9 +90,32 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self.entity_description.key}"
 
     @property
-    def available(self):
-        """Return if state is available."""
-        return not self.coordinator.stale_observation()
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        return True # FIX ME
+        # return False
+
+
+class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
+    """An EC Sensor Entity for Alerts."""
+    """ TODO!!! """
+
+    def __init__(self, hass, coordinator, config, alert_name):
+        """Initialise the platform with a data instance."""
+        super().__init__(coordinator)
+        self._config = config
+        self._alert_name = alert_name
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        name = self._config.get(CONF_NAME)
+        return f"{name if name else DEFAULT_NAME} {self._alert_name}"
+
+    @property
+    def unique_id(self):
+        """Return a unique_id for this entity."""
+        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self._alert_name}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
