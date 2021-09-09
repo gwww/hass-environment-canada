@@ -108,14 +108,12 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        return format_condition(
-            self.coordinator.data.conditions.get("icon_code", {}).get("value")
-        )
+        return format_condition(self.get_value("icon_code"))
 
     @property
     def temperature(self):
         """Return the temperature."""
-        return self.coordinator.data.conditions.get("temperature", {}).get("value")
+        return self.get_value("temperature")
 
     @property
     def temperature_unit(self):
@@ -125,7 +123,7 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
     @property
     def pressure(self):
         """Return the pressure."""
-        if self.coordinator.data.conditions.get("pressure", {}).get("value") is None:
+        if self.get_value("pressure") is None:
             return None
         pressure_hpa = 10 * float(self.coordinator.data.conditions["pressure"]["value"])
         if self._is_metric:
@@ -136,12 +134,12 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
     @property
     def humidity(self):
         """Return the humidity."""
-        return self.coordinator.data.conditions.get("humidity", {}).get("value")
+        return self.get_value("humidity")
 
     @property
     def wind_speed(self):
         """Return the wind speed."""
-        speed_km_h = self.coordinator.data.conditions.get("wind_speed", {}).get("value")
+        speed_km_h = self.get_value("wind_speed")
         if self._is_metric or speed_km_h is None:
             return speed_km_h
 
@@ -151,23 +149,17 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
     @property
     def wind_bearing(self):
         """Return the wind direction."""
-        return self.coordinator.data.conditions.get("wind_bearing", {}).get("value")
-
-    @property
-    def attribution(self):
-        """Return the attribution."""
-        return ATTRIBUTION
+        return self.get_value("wind_bearing")
 
     @property
     def visibility(self):
         """Return the visibility."""
-        visibility = self.coordinator.data.conditions.get("visibility", {}).get("value")
+        visibility = self.get_value("visibility")
         if self._is_metric or visibility is None:
             return visibility
 
         visibility = convert_distance(visibility, LENGTH_KILOMETERS, LENGTH_MILES)
         return visibility
-        # return int(round(visibility))
 
     @property
     def forecast(self):

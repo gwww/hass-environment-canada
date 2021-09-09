@@ -7,6 +7,8 @@ from homeassistant.util.dt import utcnow
 import env_canada
 
 from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    ATTR_LOCATION,
     CONF_ELEVATION,
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -20,6 +22,8 @@ from homeassistant.util.distance import convert as convert_distance
 import homeassistant.util.dt as dt_util
 
 from .const import (
+    ATTR_STATION,
+    ATTR_UPDATED,
     CONF_LANGUAGE,
     CONF_STATION,
     DOMAIN,
@@ -29,6 +33,8 @@ PLATFORMS = ["sensor", "weather"]
 
 DEFAULT_UPDATE_INTERVAL = timedelta(minutes=15)
 STALE_OBSERVATION = timedelta(minutes=20)
+ATTRIBUTION_EN = "Data provided by Environment Canada"
+ATTRIBUTION_FR = "Données fournies par Environnement Canada"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,12 +65,27 @@ async def async_unload_entry(hass, config_entry):
 
 class ECBaseEntity:
     """Common base for EC weather."""
-
     def get_value(self, key):
+        """Get the value for a weather attribute."""
         value = self.coordinator.data.conditions.get(key, {}).get("value")
         if value:
             return value
         return self.coordinator.data.hourly_forecast[0].get(key)
+
+    @property
+    def attribution(self):
+        """Return the attribution."""
+        return ATTRIBUTION_EN if self._config[CONF_LANGUAGE] == "English" else ATTRIBUTION_FR
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the device."""
+        return {
+            ATTR_ATTRIBUTION: self.attribution,
+            ATTR_UPDATED: self.coordinator.data.metadata.get("timestamp"),
+            ATTR_LOCATION: self.coordinator.data.metadata.get("location"),
+            ATTR_STATION: self.coordinator.data.metadata.get("station"),
+        }
 
     @property
     def device_info(self):
@@ -97,10 +118,11 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
         """Fetch data from EC."""
         try:
             ret = await self.weather.fetch_data()
-            self._last_update_success_time = utcnow()
-            return ret
         except Exception as err:
             raise UpdateFailed(f"Update failed: {err}") from err
+
+        self._last_update_success_time = utcnow()
+        return ret
 
     def stale_observation(self):
         """Returns is the latest observation is older than refresh time."""
@@ -119,10 +141,12 @@ class ECWeatherData:
         self._config = config
         self._is_metric = is_metric
         self._weather_data = None
+
         self.conditions = None
         self.daily_forecast = None
         self.hourly_forecast = None
         self.alerts = None
+        self.metadata = None
 
     def init_env_canada(self):
         """Weather data inialization - set the coordinates."""
@@ -146,4 +170,5 @@ class ECWeatherData:
         self.daily_forecast = self._weather_data.daily_forecasts
         self.hourly_forecast = self._weather_data.hourly_forecasts
         self.alerts = self._weather_data.alerts
+        self.metadata = self._weather_data.metadata
         return self

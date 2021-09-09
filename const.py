@@ -40,18 +40,24 @@ from homeassistant.const import (
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_PRESSURE,
     DEVICE_CLASS_TEMPERATURE,
+    LENGTH_INCHES,
     LENGTH_KILOMETERS,
     LENGTH_METERS,
     LENGTH_MILES,
+    LENGTH_MILLIMETERS,
     PERCENTAGE,
     PRESSURE_INHG,
     PRESSURE_PA,
     SPEED_KILOMETERS_PER_HOUR,
     SPEED_MILES_PER_HOUR,
     TEMP_CELSIUS,
+    UV_INDEX,
 )
 
 DOMAIN = "environment_canada2"
+
+ATTR_STATION = "station"
+ATTR_UPDATED = "updated"
 
 CONF_LANGUAGE = "language"
 CONF_STATION = "station"
@@ -211,13 +217,41 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
         native_unit_of_measurement=LENGTH_KILOMETERS,
         unit_convert=LENGTH_MILES,
     ),
+    ECSensorEntityDescription(
+        key="pop",
+        name="Change of precipitation",
+        icon=None,
+        device_class=None,
+        native_unit_of_measurement=PERCENTAGE,
+        unit_convert=PERCENTAGE,
+    ),
+    ECSensorEntityDescription(
+        key="precip_yesterday",
+        name="Precipitation yesterday",
+        icon=None,
+        device_class=None,
+        native_unit_of_measurement=LENGTH_MILLIMETERS,
+        unit_convert=LENGTH_INCHES,
+    ),
+    ECSensorEntityDescription(
+        key="uv_index",
+        name="UV Index",
+        icon=None,
+        device_class=None,
+        native_unit_of_measurement=UV_INDEX,
+        unit_convert=UV_INDEX,
+    ),
+    ECSensorEntityDescription(
+        key="condition",
+        name="Current Condition",
+        icon=None,
+        device_class=None,
+        native_unit_of_measurement=None,
+        unit_convert=None,
+    ),
 )
-
 #     'condition': {'label': 'Condition', 'value': 'Mostly Cloudy'},
 #     'icon_code': {'label': 'Icon Code', 'value': '03'},
-#     'pop': {'label': 'Chance of Precip.', 'value': None},
-#     'precip_yesterday': {'label': 'Precipitation Yesterday', 'unit': 'mm', 'value': 0.0},
 #     'tendency': {'label': 'Tendency', 'value': 'falling'},
 #     'text_summary': {'label': 'Forecast', 'value': 'Tonight. Partly cloudy. Low 9.'},
-#     'uv_index': {'label': 'UV Index', 'value': 4},
 #     'wind_dir': {'label': 'Wind Direction', 'value': 'SSE'},

@@ -1,7 +1,6 @@
 """Sensors for Environment Canada (EC)."""
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (
-    ATTR_ATTRIBUTION,
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
@@ -22,7 +21,6 @@ from homeassistant.util.pressure import convert as convert_pressure
 
 from . import ECBaseEntity
 from .const import (
-    ATTRIBUTION,
     CONF_LANGUAGE,
     CONF_STATION,
     DOMAIN,
@@ -46,19 +44,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     """An EC Sensor Entity."""
 
-    entity_description: ECSensorEntityDescription
-
     def __init__(self, hass, coordinator, config, description):
         """Initialise the platform with a data instance."""
         super().__init__(coordinator)
         self._config = config
-        self._latitude = config[CONF_LATITUDE]
-        self._longitude = config[CONF_LONGITUDE]
-        self._station = config[CONF_STATION]
-        self._attrs = None
         self.entity_description = description
 
-        self._attr_name = f"{self._station} {description.name}"
         if not hass.config.units.is_metric:
             self._attr_native_unit_of_measurement = description.unit_convert
 
@@ -86,11 +77,6 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         if unit_of_measurement == PERCENTAGE:
             return round(value)
         return value
-
-    @property
-    def device_state_attributes(self):
-        """Return the attribution."""
-        return {ATTR_ATTRIBUTION: ATTRIBUTION}
 
     @property
     def name(self):
