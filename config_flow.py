@@ -17,9 +17,13 @@ _LOGGER = logging.getLogger(__name__)
 
 def already_configured(hass, data):
     for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.data.get(CONF_STATION) == data[CONF_STATION] and entry.data.get(CONF_LANGUAGE) == data[CONF_LANGUAGE]:
+        if (
+            entry.data.get(CONF_STATION) == data[CONF_STATION]
+            and entry.data.get(CONF_LANGUAGE) == data[CONF_LANGUAGE]
+        ):
             return True
     return False
+
 
 async def validate_input(hass: core.HomeAssistant, data):
     """Validate the user input allows us to connect."""

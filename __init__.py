@@ -64,6 +64,7 @@ async def async_unload_entry(hass, config_entry):
 
 class ECBaseEntity:
     """Common base for EC weather."""
+
     def get_value(self, key):
         """Get the value for a weather attribute."""
         value = self.coordinator.data.conditions.get(key, {}).get("value")
@@ -79,7 +80,11 @@ class ECBaseEntity:
     @property
     def attribution(self):
         """Return the attribution."""
-        return ATTRIBUTION_EN if self._config[CONF_LANGUAGE] == "English" else ATTRIBUTION_FR
+        return (
+            ATTRIBUTION_EN
+            if self._config[CONF_LANGUAGE] == "English"
+            else ATTRIBUTION_FR
+        )
 
     @property
     def extra_state_attributes(self):
@@ -108,9 +113,7 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass, config_entry):
         """Initialize global EC data updater."""
-        self.weather = ECWeatherData(
-            hass, config_entry.data
-        )
+        self.weather = ECWeatherData(hass, config_entry.data)
         self.weather.init_env_canada()
 
         super().__init__(

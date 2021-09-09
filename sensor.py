@@ -44,7 +44,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     station = config_entry.data[CONF_STATION]
 
     async_add_entities(
-        ECSensor(hass, coordinator, config_entry.data, description) for description in SENSOR_TYPES
+        ECSensor(hass, coordinator, config_entry.data, description)
+        for description in SENSOR_TYPES
     )
     async_add_entities(
         ECAlertSensor(hass, coordinator, config_entry.data, alert) for alert in ALERTS
@@ -73,7 +74,7 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
             return None
 
         if key == "pressure":
-            value = value * 10 # Convert kPa to hPa
+            value = value * 10  # Convert kPa to hPa
 
         # Set alias to unit property -> prevent unnecessary hasattr calls
         unit_of_measurement = self.native_unit_of_measurement
@@ -97,7 +98,7 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled when first added to the entity registry."""
-        return True # FIX ME
+        return True  # FIX ME
         # return False
 
 
@@ -109,7 +110,9 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         super().__init__(coordinator)
         self._config = config
         self._alert_name = alert_name
-        self._name = f"{self._config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
+        self._name = (
+            f"{self._config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
+        )
         self._alert_attrs = None
 
     @property
@@ -137,5 +140,5 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled when first added to the entity registry."""
-        return True # FIX ME
+        return True  # FIX ME
         # return False

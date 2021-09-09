@@ -119,6 +119,7 @@ EC_ICON_TO_HA_CONDITION_MAP = {
 @dataclass
 class ECSensorEntityDescription(SensorEntityDescription):
     """Class describing ECSensor entities."""
+
     unit_convert: str | None = None
 
 

@@ -203,7 +203,9 @@ def get_forecast(data, hourly_forecast):
                     ).isoformat(),
                     ATTR_FORECAST_TEMP: int(half_days[high]["temperature"]),
                     ATTR_FORECAST_TEMP_LOW: int(half_days[low]["temperature"]),
-                    ATTR_FORECAST_CONDITION: format_condition(half_days[high]["icon_code"]),
+                    ATTR_FORECAST_CONDITION: format_condition(
+                        half_days[high]["icon_code"]
+                    ),
                     ATTR_FORECAST_PRECIPITATION_PROBABILITY: int(
                         half_days[high]["precip_probability"]
                     ),
