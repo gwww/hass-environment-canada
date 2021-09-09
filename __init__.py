@@ -72,6 +72,11 @@ class ECBaseEntity:
         return self.coordinator.data.hourly_forecast[0].get(key)
 
     @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
     def attribution(self):
         """Return the attribution."""
         return ATTRIBUTION_EN if self._config[CONF_LANGUAGE] == "English" else ATTRIBUTION_FR

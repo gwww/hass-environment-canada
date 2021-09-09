@@ -41,13 +41,12 @@ from .const import (
     ATTR_FORECAST_PRECIPITATION,
     CONF_LANGUAGE,
     CONF_STATION,
+    DEFAULT_NAME,
     DOMAIN,
     EC_ICON_TO_HA_CONDITION_MAP,
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-DEFAULT_NAME = "Environment Canada"
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -84,6 +83,9 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
         self._is_metric = is_metric
         self._hourly = hourly
 
+        name_suffix = " Hourly" if self._hourly else ""
+        self._name = f"{self._config.get(CONF_NAME, DEFAULT_NAME)}{name_suffix}"
+
     @property
     def unique_id(self):
         """Return unique ID."""
@@ -91,13 +93,6 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
 
         # The combination of station and language are unique for all EC weather reporting
         return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-weather{suffix}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        name = self._config.get(CONF_NAME)
-        name_suffix = " Hourly" if self._hourly else ""
-        return f"{name if name else DEFAULT_NAME}{name_suffix}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:

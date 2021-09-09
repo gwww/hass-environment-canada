@@ -23,6 +23,7 @@ from . import ECBaseEntity
 from .const import (
     CONF_LANGUAGE,
     CONF_STATION,
+    DEFAULT_NAME,
     DOMAIN,
     SENSOR_TYPES,
     ECSensorEntityDescription,
@@ -58,7 +59,7 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         super().__init__(coordinator)
         self._config = config
         self._entity_description = description
-        self._name = description.name
+        self._name = f"{self._config.get(CONF_NAME, DEFAULT_NAME)} {description.name}"
 
         if not hass.config.units.is_metric:
             self._attr_native_unit_of_measurement = description.unit_convert
@@ -89,12 +90,6 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         return value
 
     @property
-    def name(self):
-        """Return the name of the sensor."""
-        name = self._config.get(CONF_NAME)
-        return f"{name if name else DEFAULT_NAME} {self._name}"
-
-    @property
     def unique_id(self):
         """Return a unique_id for this entity."""
         return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self._entity_description.key}"
@@ -114,7 +109,7 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         super().__init__(coordinator)
         self._config = config
         self._alert_name = alert_name
-        self._name = alert_name[1]
+        self._name = f"{self._config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
         self._alert_attrs = None
 
     @property
@@ -133,12 +128,6 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     def extra_state_attributes(self):
         """Return the state attributes of the device."""
         return self._alert_attrs
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        name = self._config.get(CONF_NAME)
-        return f"{name if name else DEFAULT_NAME} {self._name} Alerts"
 
     @property
     def unique_id(self):
