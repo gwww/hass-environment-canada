@@ -28,7 +28,13 @@ from .const import (
     ECSensorEntityDescription,
 )
 
-PARALLEL_UPDATES = 0
+ALERTS = [
+    ("advisories", "Advisory"),
+    ("endings", "Ending"),
+    ("statements", "Statement"),
+    ("warnings", "Warning"),
+    ("watches", "Watch"),
+]
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -40,7 +46,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         ECSensor(hass, coordinator, config_entry.data, description) for description in SENSOR_TYPES
     )
     async_add_entities(
-        ECAlertSensor(hass, coordinator, config_entry.data, alert) for alert in ["advisories", "endings", "statements", "warnings", "watches"]
+        ECAlertSensor(hass, coordinator, config_entry.data, alert) for alert in ALERTS
     )
 
 
@@ -113,7 +119,7 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state."""
-        value = self.coordinator.data.alerts.get(self._alert_name, {}).get("value")
+        value = self.coordinator.data.alerts.get(self._alert_name[0], {}).get("value")
 
         self._alert_attrs = {}
         for index, alert in enumerate(value, start=1):
@@ -131,12 +137,12 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     def name(self):
         """Return the name of the sensor."""
         name = self._config.get(CONF_NAME)
-        return f"{name if name else DEFAULT_NAME} {self._alert_name}"
+        return f"{name if name else DEFAULT_NAME} {self._alert_name[1]} Alerts"
 
     @property
     def unique_id(self):
         """Return a unique_id for this entity."""
-        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self._alert_name}"
+        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self._alert_name[0]}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
