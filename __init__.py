@@ -104,34 +104,29 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, config_entry):
         """Initialize global EC data updater."""
         self.weather = ECWeatherData(
-            hass, config_entry.data, hass.config.units.is_metric
+            hass, config_entry.data
         )
         self.weather.init_env_canada()
 
         super().__init__(
             hass, _LOGGER, name=DOMAIN, update_interval=DEFAULT_UPDATE_INTERVAL
         )
-        self._last_update_success_time = None
 
     async def _async_update_data(self):
         """Fetch data from EC."""
         try:
-            ret = await self.weather.fetch_data()
+            return await self.weather.fetch_data()
         except Exception as err:
             raise UpdateFailed(f"Update failed: {err}") from err
-
-        self._last_update_success_time = utcnow()
-        return ret
 
 
 class ECWeatherData:
     """Keep data for EC weather entities."""
 
-    def __init__(self, hass, config, is_metric):
+    def __init__(self, hass, config):
         """Initialise the weather entity data."""
         self.hass = hass
         self._config = config
-        self._is_metric = is_metric
         self._weather_data = None
 
         self.conditions = None
@@ -156,7 +151,7 @@ class ECWeatherData:
         return True
 
     async def fetch_data(self):
-        """Fetch data from API - (current weather and forecast)."""
+        """Fetch data from EC API - (current weather, alerts, and forecast)."""
         await self._weather_data.update()
         self.conditions = self._weather_data.conditions
         self.daily_forecast = self._weather_data.daily_forecasts

@@ -39,6 +39,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(
         ECSensor(hass, coordinator, config_entry.data, description) for description in SENSOR_TYPES
     )
+    async_add_entities(
+        ECAlertSensor(hass, coordinator, config_entry.data, alert) for alert in ["advisories", "endings", "statements", "warnings", "watches"]
+    )
 
 
 class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
@@ -62,7 +65,7 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
             return None
 
         if key == "pressure":
-            value = value * 1000 # Convert kPa to Pa
+            value = value * 10 # Convert kPa to hPa
 
         # Set alias to unit property -> prevent unnecessary hasattr calls
         unit_of_measurement = self.native_unit_of_measurement
@@ -105,6 +108,24 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         super().__init__(coordinator)
         self._config = config
         self._alert_name = alert_name
+        self._alert_attrs = None
+
+    @property
+    def native_value(self):
+        """Return the state."""
+        value = self.coordinator.data.alerts.get(self._alert_name, {}).get("value")
+
+        self._alert_attrs = {}
+        for index, alert in enumerate(value, start=1):
+            self._alert_attrs[f"alert {index}"] = alert.get("title")
+            self._alert_attrs[f"alert_time {index}"] = alert.get("date")
+
+        return len(value)
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the device."""
+        return self._alert_attrs
 
     @property
     def name(self):

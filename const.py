@@ -47,7 +47,7 @@ from homeassistant.const import (
     LENGTH_MILLIMETERS,
     PERCENTAGE,
     PRESSURE_INHG,
-    PRESSURE_PA,
+    PRESSURE_HPA,
     SPEED_KILOMETERS_PER_HOUR,
     SPEED_MILES_PER_HOUR,
     TEMP_CELSIUS,
@@ -206,7 +206,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
         name="Barometric Pressure",
         icon=None,
         device_class=DEVICE_CLASS_PRESSURE,
-        native_unit_of_measurement=PRESSURE_PA,
+        native_unit_of_measurement=PRESSURE_HPA,
         unit_convert=PRESSURE_INHG,
     ),
     ECSensorEntityDescription(
