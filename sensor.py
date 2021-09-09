@@ -14,7 +14,6 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.dt import utcnow
 from homeassistant.util.pressure import convert as convert_pressure
@@ -52,15 +51,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
 
 
-class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
+class ECSensor(ECBaseEntity, SensorEntity):
     """An EC Sensor Entity."""
 
     def __init__(self, hass, coordinator, config, description):
         """Initialise the platform with a data instance."""
-        super().__init__(coordinator)
-        self._config = config
+        name = f"{config.get(CONF_NAME, DEFAULT_NAME)} {description.name}"
+        super().__init__(coordinator, config, name)
+
         self._entity_description = description
-        self._name = f"{self._config.get(CONF_NAME, DEFAULT_NAME)} {description.name}"
 
         if not hass.config.units.is_metric:
             self._attr_native_unit_of_measurement = description.unit_convert
@@ -102,23 +101,21 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         # return False
 
 
-class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
+class ECAlertSensor(ECBaseEntity, SensorEntity):
     """An EC Sensor Entity for Alerts."""
 
     def __init__(self, hass, coordinator, config, alert_name):
         """Initialise the platform with a data instance."""
-        super().__init__(coordinator)
-        self._config = config
+        name = f"{config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
+        super().__init__(coordinator, config, name)
+
         self._alert_name = alert_name
-        self._name = (
-            f"{self._config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
-        )
         self._alert_attrs = None
 
     @property
     def native_value(self):
         """Return the state."""
-        value = self.coordinator.data.alerts.get(self._alert_name[0], {}).get("value")
+        value = self._coordinator.data.alerts.get(self._alert_name[0], {}).get("value")
 
         self._alert_attrs = {}
         for index, alert in enumerate(value, start=1):

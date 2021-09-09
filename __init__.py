@@ -62,52 +62,6 @@ async def async_unload_entry(hass, config_entry):
     return unload_ok
 
 
-class ECBaseEntity:
-    """Common base for EC weather."""
-
-    def get_value(self, key):
-        """Get the value for a weather attribute."""
-        value = self.coordinator.data.conditions.get(key, {}).get("value")
-        if value:
-            return value
-        return self.coordinator.data.hourly_forecast[0].get(key)
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def attribution(self):
-        """Return the attribution."""
-        return (
-            ATTRIBUTION_EN
-            if self._config[CONF_LANGUAGE] == "English"
-            else ATTRIBUTION_FR
-        )
-
-    @property
-    def extra_state_attributes(self):
-        """Return the state attributes of the device."""
-        return {
-            ATTR_ATTRIBUTION: self.attribution,
-            ATTR_OBSERVATION_TIME: self.coordinator.data.metadata.get("timestamp"),
-            ATTR_LOCATION: self.coordinator.data.metadata.get("location"),
-            ATTR_STATION: self.coordinator.data.metadata.get("station"),
-        }
-
-    @property
-    def device_info(self):
-        """Device info."""
-        return {
-            "identifiers": {(DOMAIN,)},
-            "manufacturer": "Environment Canada",
-            "model": "Weather",
-            "default_name": "Weather",
-            "entry_type": "service",
-        }
-
-
 class ECDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching EC data."""
 
@@ -167,3 +121,54 @@ class ECWeatherData:
         self.alerts = self._weather_data.alerts
         self.metadata = self._weather_data.metadata
         return self
+
+
+class ECBaseEntity(ECDataUpdateCoordinator):
+    """Common base for EC weather."""
+    def __init__(self, coordinator, config, name):
+        """Initialise the base for all EC entities."""
+        self._coordinator = coordinator
+        self._config = config
+        self._name = name
+
+    def get_value(self, key):
+        """Get the value for a weather attribute."""
+        value = self._coordinator.data.conditions.get(key, {}).get("value")
+        if value:
+            return value
+        return self._coordinator.data.hourly_forecast[0].get(key)
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def attribution(self):
+        """Return the attribution."""
+        return (
+            ATTRIBUTION_EN
+            if self._config[CONF_LANGUAGE] == "English"
+            else ATTRIBUTION_FR
+        )
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the device."""
+        return {
+            ATTR_ATTRIBUTION: self.attribution,
+            ATTR_OBSERVATION_TIME: self._coordinator.data.metadata.get("timestamp"),
+            ATTR_LOCATION: self._coordinator.data.metadata.get("location"),
+            ATTR_STATION: self._coordinator.data.metadata.get("station"),
+        }
+
+    @property
+    def device_info(self):
+        """Device info."""
+        return {
+            "identifiers": {(DOMAIN,)},
+            "manufacturer": "Environment Canada",
+            "model": "Weather",
+            "default_name": "Weather",
+            "entry_type": "service",
+        }

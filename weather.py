@@ -31,7 +31,6 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt
 from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.pressure import convert as convert_pressure
@@ -73,18 +72,16 @@ def format_condition(ec_icon: str) -> str:
     return EC_ICON_TO_HA_CONDITION_MAP.get(icon_number)
 
 
-class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
+class ECWeather(ECBaseEntity, WeatherEntity):
     """Implementation of a EC weather condition."""
 
     def __init__(self, coordinator, config, is_metric, hourly):
         """Initialise the platform."""
-        super().__init__(coordinator)
-        self._config = config
+        name = f"{config.get(CONF_NAME, DEFAULT_NAME)}{' Hourly' if hourly else ''}"
+        super().__init__(coordinator, config, name)
+
         self._is_metric = is_metric
         self._hourly = hourly
-
-        name_suffix = " Hourly" if self._hourly else ""
-        self._name = f"{self._config.get(CONF_NAME, DEFAULT_NAME)}{name_suffix}"
 
     @property
     def unique_id(self):
@@ -119,7 +116,7 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
         """Return the pressure."""
         if self.get_value("pressure") is None:
             return None
-        pressure_hpa = 10 * float(self.coordinator.data.conditions["pressure"]["value"])
+        pressure_hpa = 10 * float(self._coordinator.data.conditions["pressure"]["value"])
         if self._is_metric:
             return pressure_hpa
 
@@ -158,7 +155,7 @@ class ECWeather(CoordinatorEntity, ECBaseEntity, WeatherEntity):
     @property
     def forecast(self):
         """Return the forecast array."""
-        return get_forecast(self.coordinator.data, self._hourly)
+        return get_forecast(self._coordinator.data, self._hourly)
 
 
 def get_forecast(data, hourly_forecast):
