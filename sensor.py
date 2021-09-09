@@ -57,7 +57,8 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
         """Initialise the platform with a data instance."""
         super().__init__(coordinator)
         self._config = config
-        self.entity_description = description
+        self._entity_description = description
+        self._name = description.name
 
         if not hass.config.units.is_metric:
             self._attr_native_unit_of_measurement = description.unit_convert
@@ -65,7 +66,7 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state."""
-        key = self.entity_description.key
+        key = self._entity_description.key
         value = self.get_value(key)
         if value is None:
             return None
@@ -91,12 +92,12 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     def name(self):
         """Return the name of the sensor."""
         name = self._config.get(CONF_NAME)
-        return f"{name if name else DEFAULT_NAME} {self.entity_description.name}"
+        return f"{name if name else DEFAULT_NAME} {self._name}"
 
     @property
     def unique_id(self):
         """Return a unique_id for this entity."""
-        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self.entity_description.key}"
+        return f"{self._config[CONF_STATION]}-{self._config[CONF_LANGUAGE]}-{self._entity_description.key}"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -107,13 +108,13 @@ class ECSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
 
 class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     """An EC Sensor Entity for Alerts."""
-    """ TODO!!! """
 
     def __init__(self, hass, coordinator, config, alert_name):
         """Initialise the platform with a data instance."""
         super().__init__(coordinator)
         self._config = config
         self._alert_name = alert_name
+        self._name = alert_name[1]
         self._alert_attrs = None
 
     @property
@@ -137,7 +138,7 @@ class ECAlertSensor(CoordinatorEntity, ECBaseEntity, SensorEntity):
     def name(self):
         """Return the name of the sensor."""
         name = self._config.get(CONF_NAME)
-        return f"{name if name else DEFAULT_NAME} {self._alert_name[1]} Alerts"
+        return f"{name if name else DEFAULT_NAME} {self._name} Alerts"
 
     @property
     def unique_id(self):
