@@ -113,7 +113,7 @@ class ECAlertSensor(ECBaseEntity, SensorEntity):
 
     def __init__(self, coordinator, config, alert_name):
         """Initialise the platform with a data instance."""
-        name = f"{config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
+        name = f"{config.get(CONF_NAME, DEFAULT_NAME)} {alert_name[1]} Alerts"
         super().__init__(coordinator, config, name)
 
         self._alert_name = alert_name
