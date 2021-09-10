@@ -1,0 +1,131 @@
+"""Support for the Environment Canada radar imagery."""
+from __future__ import annotations
+import datetime
+
+from env_canada import ECRadar
+import voluptuous as vol
+
+from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
+from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    CONF_NAME,
+)
+import homeassistant.helpers.config_validation as cv
+from homeassistant.util import Throttle
+
+from .const import (
+    ATTRIBUTION_EN,
+    ATTRIBUTION_FR,
+    ATTR_OBSERVATION_TIME,
+    CONF_LANGUAGE,
+    DEFAULT_NAME,
+    DOMAIN,
+)
+
+ATTR_UPDATED = "updated"
+
+CONF_LOOP = "loop"
+CONF_PRECIP_TYPE = "precip_type"
+
+MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=10)
+
+
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    """Set up the Environment Canada camera."""
+
+    lat = config_entry.data.get(CONF_LATITUDE, hass.config.latitude)
+    lon = config_entry.data.get(CONF_LONGITUDE, hass.config.longitude)
+    radar_object = ECRadar(
+        coordinates=(lat, lon), precip_type=config_entry.data.get(CONF_PRECIP_TYPE)
+    )
+
+    async_add_entities([ECCamera(config_entry.data, radar_object)], True)
+
+    # async_add_entities(
+    #     [ECCamera(radar_object, name, config_entry.data.get(CONF_LOOP, True), "English")], True
+    # )
+
+
+class ECCamera(Camera):
+    """Implementation of an Environment Canada radar camera."""
+
+    def __init__(self, config, radar_object):
+        """Initialize the EC camera."""
+        super().__init__()
+
+        self._radar_object = radar_object
+        self._config = config
+        self._name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
+
+        # self._is_loop = is_loop
+        # self._name = name
+        # self._language = language
+
+        self.content_type = "image/gif"
+        self.image = None
+        self.timestamp = None
+
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        """
+        Return bytes of camera image. Ignore width and height when
+        the image is fetched from url. Camera component will resize it.
+        """
+        await self.async_update()
+        return self.image
+
+    # @property
+    # def extra_state_attributes(self):
+    #     """Return the state attributes of the device."""
+    #     return {ATTR_ATTRIBUTION: self.attribution, ATTR_UPDATED: self.timestamp}
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the device."""
+        return {
+            ATTR_ATTRIBUTION: self.attribution,
+            ATTR_OBSERVATION_TIME: self.timestamp,
+        }
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update(self):
+        """Update radar image."""
+        if self._config.get(CONF_LOOP, True):  # FIX ME - change from get to dict index
+            self.image = await self._radar_object.get_loop()
+        else:
+            self.image = await self._radar_object.get_latest_frame()
+        self.timestamp = self._radar_object.timestamp
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def unique_id(self):
+        """Return unique ID."""
+        # The combination of coords and language are unique for all EC weather reporting
+        return f"{self._config[CONF_LATITUDE]}-{self._config[CONF_LONGITUDE]}-{self._config[CONF_LANGUAGE]}-radar"
+
+    @property
+    def attribution(self):
+        """Return the attribution."""
+        return (
+            ATTRIBUTION_EN
+            if self._config[CONF_LANGUAGE] == "English"
+            else ATTRIBUTION_FR
+        )
+
+    @property
+    def device_info(self):
+        """Device info."""
+        return {
+            "identifiers": {(DOMAIN,)},
+            "manufacturer": "Environment Canada",
+            "model": "Weather Radar",
+            "default_name": "Weather Radar",
+            "entry_type": "service",
+        }

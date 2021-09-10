@@ -20,6 +20,8 @@ from homeassistant.util.dt import utcnow
 import homeassistant.util.dt as dt_util
 
 from .const import (
+    ATTRIBUTION_EN,
+    ATTRIBUTION_FR,
     ATTR_OBSERVATION_TIME,
     ATTR_STATION,
     CONF_LANGUAGE,
@@ -27,11 +29,9 @@ from .const import (
     DOMAIN,
 )
 
-PLATFORMS = ["sensor", "weather"]
+PLATFORMS = ["camera", "sensor", "weather"]
 
 DEFAULT_UPDATE_INTERVAL = timedelta(minutes=15)
-ATTRIBUTION_EN = "Data provided by Environment Canada"
-ATTRIBUTION_FR = "Données fournies par Environnement Canada"
 
 _LOGGER = logging.getLogger(__name__)
 

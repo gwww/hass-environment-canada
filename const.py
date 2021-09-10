@@ -44,10 +44,10 @@ ATTR_STATION = "station"
 
 CONF_LANGUAGE = "language"
 CONF_STATION = "station"
+ATTRIBUTION_EN = "Data provided by Environment Canada"
+ATTRIBUTION_FR = "Données fournies par Environnement Canada"
 
 DEFAULT_NAME = "Environment Canada"
-
-ATTRIBUTION = "Data provided by Environment Canada"
 
 # Icon codes from:
 # https://dd.weather.gc.ca/citypage_weather/docs/forecast_conditions_icon_code_descriptions_e.csv
