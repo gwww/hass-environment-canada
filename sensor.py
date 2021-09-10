@@ -41,7 +41,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        ECSensor(coordinator, config_entry.data, description, hass.config.units.is_metric)
+        ECSensor(
+            coordinator, config_entry.data, description, hass.config.units.is_metric
+        )
         for description in SENSOR_TYPES
     )
     async_add_entities(
@@ -60,7 +62,9 @@ class ECSensor(ECBaseEntity, SensorEntity):
         self._entity_description = description
         self._is_metric = is_metric
         if is_metric:
-            self._attr_native_unit_of_measurement = description.native_unit_of_measurement
+            self._attr_native_unit_of_measurement = (
+                description.native_unit_of_measurement
+            )
         else:
             self._attr_native_unit_of_measurement = description.unit_convert
         self._attr_device_class = description.device_class

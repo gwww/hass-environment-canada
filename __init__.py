@@ -124,6 +124,7 @@ class ECWeatherData:
 
 class ECBaseEntity:
     """Common base for EC weather."""
+
     def __init__(self, coordinator, config, name):
         """Initialise the base for all EC entities."""
         self._coordinator = coordinator
