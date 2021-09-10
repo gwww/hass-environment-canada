@@ -1,8 +1,6 @@
 """Sensors for Environment Canada (EC)."""
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
     CONF_NAME,
     LENGTH_KILOMETERS,
     LENGTH_METERS,
@@ -13,9 +11,7 @@ from homeassistant.const import (
     SPEED_MILES_PER_HOUR,
     TEMP_CELSIUS,
 )
-from homeassistant.core import HomeAssistant
 from homeassistant.util.distance import convert as convert_distance
-from homeassistant.util.dt import utcnow
 from homeassistant.util.pressure import convert as convert_pressure
 
 from . import ECBaseEntity

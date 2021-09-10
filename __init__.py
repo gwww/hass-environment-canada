@@ -2,7 +2,6 @@
 from datetime import timedelta
 import logging
 from random import randrange
-from homeassistant.util.dt import utcnow
 
 import env_canada
 
@@ -16,9 +15,8 @@ from homeassistant.const import (
     LENGTH_FEET,
     LENGTH_METERS,
 )
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.util.distance import convert as convert_distance
+from homeassistant.util.dt import utcnow
 import homeassistant.util.dt as dt_util
 
 from .const import (

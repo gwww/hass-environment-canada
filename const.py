@@ -1,9 +1,9 @@
+"""Constants for EC component."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from homeassistant.components.sensor import SensorEntityDescription
 
-"""Constants for Met component."""
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_CLOUDY,
@@ -17,22 +17,6 @@ from homeassistant.components.weather import (
     ATTR_CONDITION_SNOWY_RAINY,
     ATTR_CONDITION_SUNNY,
     ATTR_CONDITION_WINDY,
-    ATTR_FORECAST_CONDITION,
-    ATTR_FORECAST_PRECIPITATION,
-    ATTR_FORECAST_PRECIPITATION_PROBABILITY,
-    ATTR_FORECAST_TEMP,
-    ATTR_FORECAST_TEMP_LOW,
-    ATTR_FORECAST_TIME,
-    ATTR_FORECAST_WIND_BEARING,
-    ATTR_FORECAST_WIND_SPEED,
-    ATTR_WEATHER_ATTRIBUTION,
-    ATTR_WEATHER_HUMIDITY,
-    ATTR_WEATHER_PRESSURE,
-    ATTR_WEATHER_TEMPERATURE,
-    ATTR_WEATHER_VISIBILITY,
-    ATTR_WEATHER_WIND_BEARING,
-    ATTR_WEATHER_WIND_SPEED,
-    DOMAIN as WEATHER_DOMAIN,
 )
 
 from homeassistant.const import (
@@ -42,7 +26,6 @@ from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     LENGTH_INCHES,
     LENGTH_KILOMETERS,
-    LENGTH_METERS,
     LENGTH_MILES,
     LENGTH_MILLIMETERS,
     PERCENTAGE,
@@ -66,7 +49,8 @@ DEFAULT_NAME = "Environment Canada"
 
 ATTRIBUTION = "Data provided by Environment Canada"
 
-# Icon codes from https://dd.weather.gc.ca/citypage_weather/docs/forecast_conditions_icon_code_descriptions_e.csv
+# Icon codes from:
+# https://dd.weather.gc.ca/citypage_weather/docs/forecast_conditions_icon_code_descriptions_e.csv
 EC_ICON_TO_HA_CONDITION_MAP = {
     0: ATTR_CONDITION_SUNNY,
     1: ATTR_CONDITION_SUNNY,
