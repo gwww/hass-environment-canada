@@ -65,9 +65,9 @@ async def async_unload_entry(hass, config_entry):
 class ECDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching EC data."""
 
-    def __init__(self, hass, config_entry):
+    def __init__(self, hass, config):
         """Initialize global EC data updater."""
-        self.weather = ECWeatherData(hass, config_entry.data)
+        self.weather = ECWeatherData(config)
         self.weather.init_env_canada()
 
         super().__init__(
@@ -85,9 +85,8 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
 class ECWeatherData:
     """Keep data for EC weather entities."""
 
-    def __init__(self, hass, config):
+    def __init__(self, config):
         """Initialise the weather entity data."""
-        self.hass = hass
         self._config = config
         self._weather_data = None
 
@@ -99,10 +98,10 @@ class ECWeatherData:
 
     def init_env_canada(self):
         """Weather data inialization - set the coordinates."""
-        latitude = self._config[CONF_LATITUDE]
-        longitude = self._config[CONF_LONGITUDE]
-        station = self._config[CONF_STATION]
-        language = self._config[CONF_LANGUAGE]
+        latitude = self._config.data.get(CONF_LATITUDE)
+        longitude = self._config.data.get(CONF_LONGITUDE)
+        station = self._config.data.get(CONF_STATION)
+        language = self._config.data.get(CONF_LANGUAGE)
 
         self._weather_data = env_canada.ECWeather(
             station_id=station,
@@ -123,7 +122,7 @@ class ECWeatherData:
         return self
 
 
-class ECBaseEntity(ECDataUpdateCoordinator):
+class ECBaseEntity:
     """Common base for EC weather."""
     def __init__(self, coordinator, config, name):
         """Initialise the base for all EC entities."""

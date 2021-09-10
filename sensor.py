@@ -25,7 +25,6 @@ from .const import (
     DEFAULT_NAME,
     DOMAIN,
     SENSOR_TYPES,
-    ECSensorEntityDescription,
 )
 
 ALERTS = [
@@ -40,29 +39,31 @@ ALERTS = [
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the EC weather platform."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    station = config_entry.data[CONF_STATION]
 
     async_add_entities(
-        ECSensor(hass, coordinator, config_entry.data, description)
+        ECSensor(coordinator, config_entry.data, description, hass.config.units.is_metric)
         for description in SENSOR_TYPES
     )
     async_add_entities(
-        ECAlertSensor(hass, coordinator, config_entry.data, alert) for alert in ALERTS
+        ECAlertSensor(coordinator, config_entry.data, alert) for alert in ALERTS
     )
 
 
 class ECSensor(ECBaseEntity, SensorEntity):
     """An EC Sensor Entity."""
 
-    def __init__(self, hass, coordinator, config, description):
+    def __init__(self, coordinator, config, description, is_metric):
         """Initialise the platform with a data instance."""
         name = f"{config.get(CONF_NAME, DEFAULT_NAME)} {description.name}"
         super().__init__(coordinator, config, name)
 
         self._entity_description = description
-
-        if not hass.config.units.is_metric:
+        self._is_metric = is_metric
+        if is_metric:
+            self._attr_native_unit_of_measurement = description.native_unit_of_measurement
+        else:
             self._attr_native_unit_of_measurement = description.unit_convert
+        self._attr_device_class = description.device_class
 
     @property
     def native_value(self):
@@ -75,18 +76,20 @@ class ECSensor(ECBaseEntity, SensorEntity):
         if key == "pressure":
             value = value * 10  # Convert kPa to hPa
 
-        # Set alias to unit property -> prevent unnecessary hasattr calls
-        unit_of_measurement = self.native_unit_of_measurement
+        if self._is_metric:
+            return value
+
+        unit_of_measurement = self._entity_description.unit_convert
         if unit_of_measurement == SPEED_MILES_PER_HOUR:
-            return round(convert_distance(value, LENGTH_KILOMETERS, LENGTH_MILES))
-        if unit_of_measurement == LENGTH_MILES:
-            return round(convert_distance(value, LENGTH_METERS, LENGTH_MILES))
-        if unit_of_measurement == PRESSURE_INHG:
-            return round(convert_pressure(value, PRESSURE_PA, PRESSURE_INHG), 2)
-        if unit_of_measurement == TEMP_CELSIUS:
-            return round(value, 1)
-        if unit_of_measurement == PERCENTAGE:
-            return round(value)
+            value = round(convert_distance(value, LENGTH_KILOMETERS, LENGTH_MILES))
+        elif unit_of_measurement == LENGTH_MILES:
+            value = round(convert_distance(value, LENGTH_METERS, LENGTH_MILES))
+        elif unit_of_measurement == PRESSURE_INHG:
+            value = round(convert_pressure(value, PRESSURE_PA, PRESSURE_INHG), 2)
+        elif unit_of_measurement == TEMP_CELSIUS:
+            value = round(value, 1)
+        elif unit_of_measurement == PERCENTAGE:
+            value = round(value)
         return value
 
     @property
@@ -104,7 +107,7 @@ class ECSensor(ECBaseEntity, SensorEntity):
 class ECAlertSensor(ECBaseEntity, SensorEntity):
     """An EC Sensor Entity for Alerts."""
 
-    def __init__(self, hass, coordinator, config, alert_name):
+    def __init__(self, coordinator, config, alert_name):
         """Initialise the platform with a data instance."""
         name = f"{config.get(CONF_NAME, DEFAULT_NAME)}{alert_name[1]} Alerts"
         super().__init__(coordinator, config, name)

@@ -8,36 +8,22 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_TEMP,
     ATTR_FORECAST_TEMP_LOW,
     ATTR_FORECAST_TIME,
-    ATTR_WEATHER_HUMIDITY,
-    ATTR_WEATHER_PRESSURE,
-    ATTR_WEATHER_TEMPERATURE,
-    ATTR_WEATHER_WIND_BEARING,
-    ATTR_WEATHER_WIND_SPEED,
-    PLATFORM_SCHEMA,
     WeatherEntity,
 )
-from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import (
-    CONF_ELEVATION,
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
     CONF_NAME,
-    LENGTH_INCHES,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
-    LENGTH_MILLIMETERS,
     PRESSURE_HPA,
     PRESSURE_INHG,
     TEMP_CELSIUS,
 )
-from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt
 from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.pressure import convert as convert_pressure
 
 from . import ECBaseEntity
 from .const import (
-    ATTR_FORECAST_PRECIPITATION,
     CONF_LANGUAGE,
     CONF_STATION,
     DEFAULT_NAME,
@@ -67,7 +53,7 @@ def format_condition(ec_icon: str) -> str:
     """Return condition."""
     try:
         icon_number = int(ec_icon)
-    except:
+    except ValueError:
         return None
     return EC_ICON_TO_HA_CONDITION_MAP.get(icon_number)
 
