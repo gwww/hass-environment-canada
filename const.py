@@ -115,7 +115,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="dewpoint",
         name="Dew Point",
-        icon=None,
+        icon="mdi:thermometer",
         device_class=DEVICE_CLASS_TEMPERATURE,
         native_unit_of_measurement=TEMP_CELSIUS,
         unit_convert=TEMP_CELSIUS,
@@ -123,7 +123,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="temperature",
         name="Temperature",
-        icon=None,
+        icon="mdi:thermometer",
         device_class=DEVICE_CLASS_TEMPERATURE,
         native_unit_of_measurement=TEMP_CELSIUS,
         unit_convert=TEMP_CELSIUS,
@@ -131,7 +131,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="low_temp",
         name="Low Temperature",
-        icon=None,
+        icon="mdi:thermometer-chevron-down",
         device_class=DEVICE_CLASS_TEMPERATURE,
         native_unit_of_measurement=TEMP_CELSIUS,
         unit_convert=TEMP_CELSIUS,
@@ -139,7 +139,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="high_temp",
         name="High Temperature",
-        icon=None,
+        icon="mdi:thermometer-chevron-up",
         device_class=DEVICE_CLASS_TEMPERATURE,
         native_unit_of_measurement=TEMP_CELSIUS,
         unit_convert=TEMP_CELSIUS,
@@ -147,7 +147,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="wind_chill",
         name="Wind Chill",
-        icon=None,
+        icon="mdi:thermometer-minus",
         device_class=DEVICE_CLASS_TEMPERATURE,
         native_unit_of_measurement=TEMP_CELSIUS,
         unit_convert=TEMP_CELSIUS,
@@ -155,7 +155,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="humidex",
         name="Humidex",
-        icon=None,
+        icon="mdi:thermometer-plus",
         device_class=DEVICE_CLASS_TEMPERATURE,
         native_unit_of_measurement=TEMP_CELSIUS,
         unit_convert=TEMP_CELSIUS,
@@ -163,7 +163,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="humidity",
         name="Humidity",
-        icon=None,
+        icon="mdi:water-percent",
         device_class=DEVICE_CLASS_HUMIDITY,
         native_unit_of_measurement=PERCENTAGE,
         unit_convert=PERCENTAGE,
@@ -187,7 +187,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="wind_bearing",
         name="Wind Bearing",
-        icon="mdi:compass-rose",
+        icon="mdi:compass",
         device_class=None,
         native_unit_of_measurement=DEGREE,
         unit_convert=DEGREE,
@@ -195,7 +195,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="pressure",
         name="Barometric Pressure",
-        icon=None,
+        icon="mdi:gauge",
         device_class=DEVICE_CLASS_PRESSURE,
         native_unit_of_measurement=PRESSURE_HPA,
         unit_convert=PRESSURE_INHG,
@@ -203,7 +203,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="visibility",
         name="Visibility",
-        icon="mdi:eye",
+        icon="mdi:telescope",
         device_class=None,
         native_unit_of_measurement=LENGTH_KILOMETERS,
         unit_convert=LENGTH_MILES,
@@ -211,7 +211,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="pop",
         name="Chance of precipitation",
-        icon=None,
+        icon="mdi:weather-snowy-rainy",
         device_class=None,
         native_unit_of_measurement=PERCENTAGE,
         unit_convert=PERCENTAGE,
@@ -219,7 +219,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="precip_yesterday",
         name="Precipitation yesterday",
-        icon=None,
+        icon="mdi:weather-snowy-rainy",
         device_class=None,
         native_unit_of_measurement=LENGTH_MILLIMETERS,
         unit_convert=LENGTH_INCHES,
@@ -227,7 +227,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="uv_index",
         name="UV Index",
-        icon=None,
+        icon="mdi:weather-sunny-alert",
         device_class=None,
         native_unit_of_measurement=UV_INDEX,
         unit_convert=UV_INDEX,
@@ -235,7 +235,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="condition",
         name="Current Condition",
-        icon=None,
+        icon="mdi:weather-partly-snowy-rainy",
         device_class=None,
         native_unit_of_measurement=None,
         unit_convert=None,
@@ -243,7 +243,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="icon_code",
         name="Icon Code",
-        icon=None,
+        icon="mdi:weather-partly-snowy-rainy",
         device_class=None,
         native_unit_of_measurement=None,
         unit_convert=None,
@@ -251,7 +251,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="tendency",
         name="Tendency",
-        icon=None,
+        icon="mdi:swap-vertical",
         device_class=None,
         native_unit_of_measurement=None,
         unit_convert=None,
@@ -259,7 +259,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="text_summary",
         name="Summary",
-        icon=None,
+        icon="mdi:weather-partly-snowy-rainy",
         device_class=None,
         native_unit_of_measurement=None,
         unit_convert=None,
@@ -267,7 +267,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="wind_dir",
         name="Wind Direction",
-        icon=None,
+        icon="mdi:sign-direction",
         device_class=None,
         native_unit_of_measurement=None,
         unit_convert=None,

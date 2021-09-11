@@ -53,7 +53,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     platform = entity_platform.async_get_current_platform()
 
     platform.async_register_entity_service(
-        SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "set_radar_type"
+        SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "async_set_radar_type"
     )
 
 
@@ -96,9 +96,10 @@ class ECCamera(Camera):
         self.image = await self._radar_object.get_loop()
         self.timestamp = self._radar_object.timestamp
 
-    def set_radar_type(self, radar_type):
+    async def async_set_radar_type(self, radar_type):
         """Set the type of radar to display."""
         self._radar_object.precip_type = radar_type.lower()
+        await self.async_update(no_throttle=True)
 
     @property
     def name(self):
