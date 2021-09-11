@@ -163,7 +163,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="humidity",
         name="Humidity",
-        icon="mdi-water-percent",
+        icon="mdi:water-percent",
         device_class=DEVICE_CLASS_HUMIDITY,
         native_unit_of_measurement=PERCENTAGE,
         unit_convert=PERCENTAGE,
@@ -187,7 +187,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
     ECSensorEntityDescription(
         key="wind_bearing",
         name="Wind Bearing",
-        icon="mdi:compass-rose",
+        icon="mdi:compass",
         device_class=None,
         native_unit_of_measurement=DEGREE,
         unit_convert=DEGREE,

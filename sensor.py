@@ -103,6 +103,10 @@ class ECSensor(ECBaseEntity, SensorEntity):
         return True  # FIX ME
         # return False
 
+    @property
+    def icon(self):
+        """Return the icon."""
+        return self._entity_description.icon
 
 class ECAlertSensor(ECBaseEntity, SensorEntity):
     """An EC Sensor Entity for Alerts."""
