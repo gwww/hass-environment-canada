@@ -13,6 +13,7 @@ from homeassistant.const import (
     CONF_NAME,
 )
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import entity_platform
 from homeassistant.util import Throttle
 
 from .const import (
@@ -28,8 +29,14 @@ ATTR_UPDATED = "updated"
 
 CONF_LOOP = "loop"
 CONF_PRECIP_TYPE = "precip_type"
+CONF_RADAR_TYPE = "radar_type"
 
 MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=10)
+SERVICE_SET_RADAR_TYPE = "set_radar_type"
+
+SET_RADAR_TYPE_SCHEMA = {
+    vol.Required(CONF_RADAR_TYPE, default="Auto"): vol.In(["Auto", "Rain", "Snow"])
+}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -43,9 +50,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     async_add_entities([ECCamera(config_entry.data, radar_object)], True)
 
-    # async_add_entities(
-    #     [ECCamera(radar_object, name, config_entry.data.get(CONF_LOOP, True), "English")], True
-    # )
+    platform = entity_platform.async_get_current_platform()
+
+    platform.async_register_entity_service(
+        SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "set_radar_type"
+    )
 
 
 class ECCamera(Camera):
@@ -58,10 +67,6 @@ class ECCamera(Camera):
         self._radar_object = radar_object
         self._config = config
         self._name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
-
-        # self._is_loop = is_loop
-        # self._name = name
-        # self._language = language
 
         self.content_type = "image/gif"
         self.image = None
@@ -77,11 +82,6 @@ class ECCamera(Camera):
         await self.async_update()
         return self.image
 
-    # @property
-    # def extra_state_attributes(self):
-    #     """Return the state attributes of the device."""
-    #     return {ATTR_ATTRIBUTION: self.attribution, ATTR_UPDATED: self.timestamp}
-
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the device."""
@@ -93,11 +93,12 @@ class ECCamera(Camera):
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Update radar image."""
-        if self._config.get(CONF_LOOP, True):  # FIX ME - change from get to dict index
-            self.image = await self._radar_object.get_loop()
-        else:
-            self.image = await self._radar_object.get_latest_frame()
+        self.image = await self._radar_object.get_loop()
         self.timestamp = self._radar_object.timestamp
+
+    def set_radar_type(self, radar_type):
+        """Set the type of radar to display."""
+        self._radar_object.precip_type = radar_type.lower()
 
     @property
     def name(self):
