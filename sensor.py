@@ -24,11 +24,11 @@ from .const import (
 )
 
 ALERTS = [
-    ("advisories", "Advisory"),
-    ("endings", "Ending"),
-    ("statements", "Statement"),
-    ("warnings", "Warning"),
-    ("watches", "Watch"),
+    ("advisories", "Advisory", "mdi:bell-alert"),
+    ("endings", "Ending", "mdi:alert-circle-check"),
+    ("statements", "Statement", "mdi:bell-alert"),
+    ("warnings", "Warning", "mdi:alert-octagon"),
+    ("watches", "Watch", "mdi:alert"),
 ]
 
 
@@ -146,3 +146,8 @@ class ECAlertSensor(ECBaseEntity, SensorEntity):
         """Return if the entity should be enabled when first added to the entity registry."""
         return True  # FIX ME
         # return False
+
+    @property
+    def icon(self):
+        """Return the icon."""
+        return self._alert_name[2]
