@@ -105,3 +105,8 @@ class ECCamera(ECBaseEntity, Camera):
             "default_name": "Weather Radar",
             "entry_type": "service",
         }
+
+    @property
+    def icon(self):
+        """Return the icon."""
+        return "mdi:radar"
