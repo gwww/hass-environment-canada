@@ -3,7 +3,7 @@ from datetime import timedelta
 import logging
 from random import randrange
 
-import env_canada
+from env_canada import ECWeather
 
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
@@ -101,7 +101,7 @@ class ECWeatherData:
         station = self._config.data.get(CONF_STATION)
         language = self._config.data.get(CONF_LANGUAGE)
 
-        self._weather_data = env_canada.ECWeather(
+        self._weather_data = ECWeather(
             station_id=station,
             coordinates=(latitude, longitude),
             language=language.lower(),
@@ -151,6 +151,12 @@ class ECBaseEntity:
         )
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        # return True  # FIX ME
+        return False
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes of the device."""
         return {
@@ -170,3 +176,9 @@ class ECBaseEntity:
             "default_name": "Weather",
             "entry_type": "service",
         }
+
+
+class ECUpdateFailed(Exception):
+    """Raised when an update fails to get data from Environment Canada."""
+
+    pass

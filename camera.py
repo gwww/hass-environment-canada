@@ -16,6 +16,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.util import Throttle
 
+from . import ECUpdateFailed
 from .const import (
     ATTRIBUTION_EN,
     ATTRIBUTION_FR,
@@ -93,7 +94,13 @@ class ECCamera(Camera):
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Update radar image."""
-        self.image = await self._radar_object.get_loop()
+        try:
+            self.image = await self._radar_object.get_loop()
+        except Exception as err:
+            raise ECUpdateFailed(
+                f"Environment Canada Radar update failed: {err}"
+            ) from err
+
         self.timestamp = self._radar_object.timestamp
 
     async def async_set_radar_type(self, radar_type):
