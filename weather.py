@@ -36,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Add a weather entity from a config_entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["weather_coordinator"]
     async_add_entities(
         [
             ECWeather(
@@ -151,7 +151,7 @@ def get_forecast(data, hourly_forecast):
     forecast_array = []
 
     if not hourly_forecast:
-        half_days = data.daily_forecast
+        half_days = data.daily_forecasts
 
         today = {
             ATTR_FORECAST_TIME: dt.now().isoformat(),
@@ -198,7 +198,7 @@ def get_forecast(data, hourly_forecast):
             )
 
     else:
-        for hour in data.hourly_forecast:
+        for hour in data.hourly_forecasts:
             forecast_array.append(
                 {
                     ATTR_FORECAST_TIME: hour["period"],

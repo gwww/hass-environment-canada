@@ -43,29 +43,24 @@ SET_RADAR_TYPE_SCHEMA = {
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Environment Canada camera."""
 
-    lat = config_entry.data.get(CONF_LATITUDE, hass.config.latitude)
-    lon = config_entry.data.get(CONF_LONGITUDE, hass.config.longitude)
-    radar_object = ECRadar(
-        coordinates=(lat, lon), precip_type=config_entry.data.get(CONF_PRECIP_TYPE)
-    )
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["radar_coordinator"]
 
-    async_add_entities([ECCamera(config_entry.data, radar_object)], True)
+    async_add_entities([ECCamera(coordinator, config_entry.data)], True)
 
-    platform = entity_platform.async_get_current_platform()
-
-    platform.async_register_entity_service(
-        SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "async_set_radar_type"
-    )
+    # platform = entity_platform.async_get_current_platform()
+    # platform.async_register_entity_service(
+    #     SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "async_set_radar_type"
+    # )
 
 
 class ECCamera(Camera):
     """Implementation of an Environment Canada radar camera."""
 
-    def __init__(self, config, radar_object):
+    def __init__(self, coordinator, config):
         """Initialize the EC camera."""
         super().__init__()
 
-        self._radar_object = radar_object
+        self._coordinator = coordinator
         self._config = config
         self._name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
 
@@ -80,8 +75,8 @@ class ECCamera(Camera):
         Return bytes of camera image. Ignore width and height when
         the image is fetched from url. Camera component will resize it.
         """
-        await self.async_update()
-        return self.image
+        self.timestamp = self._coordinator.data.timestamp
+        return self._coordinator.data.image
 
     @property
     def extra_state_attributes(self):
@@ -91,22 +86,10 @@ class ECCamera(Camera):
             ATTR_OBSERVATION_TIME: self.timestamp,
         }
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update(self):
-        """Update radar image."""
-        try:
-            self.image = await self._radar_object.get_loop()
-        except Exception as err:
-            raise ECUpdateFailed(
-                f"Environment Canada Radar update failed: {err}"
-            ) from err
-
-        self.timestamp = self._radar_object.timestamp
-
-    async def async_set_radar_type(self, radar_type):
-        """Set the type of radar to display."""
-        self._radar_object.precip_type = radar_type.lower()
-        await self.async_update(no_throttle=True)
+    # async def async_set_radar_type(self, radar_type):
+    #     """Set the type of radar to display."""
+    #     self._radar_object.precip_type = radar_type.lower()
+    #     await self.async_update(no_throttle=True)
 
     @property
     def name(self):

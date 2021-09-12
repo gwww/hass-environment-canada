@@ -1,9 +1,8 @@
 """The Environment Canada (EC) component."""
 from datetime import timedelta
 import logging
-from random import randrange
 
-from env_canada import ECWeather
+from env_canada import ECWeather, ECRadar
 
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
@@ -31,18 +30,75 @@ from .const import (
 
 PLATFORMS = ["camera", "sensor", "weather"]
 
-DEFAULT_UPDATE_INTERVAL = timedelta(minutes=15)
+DEFAULT_WEATHER_UPDATE_INTERVAL = timedelta(minutes=1)
+DEFAULT_RADAR_UPDATE_INTERVAL = timedelta(minutes=1)
 
 _LOGGER = logging.getLogger(__name__)
 
 
+class MyECRadar(ECRadar):
+    """Slim wrapper to add update method."""
+
+    def __init__(self, coordinates):
+        """Init my radar."""
+        super().__init__(coordinates=coordinates, precip_type=None)
+        self.image = None
+
+    async def update(self):
+        self.image = await self.get_loop()
+
+
+async def create_coordinator(hass, ec_data, name, station, interval):
+    """Create a data coordinator."""
+
+    async def async_update_data():
+        """Obtain data from EC."""
+        print(f"Coordinator update of {name}")
+        try:
+            await ec_data.update()
+        except Exception as err:
+            raise ECUpdateFailed(
+                f"Environment Canada {name} update failed: {err}"
+            ) from err
+        return ec_data
+
+    coordinator = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name=f"Environment Canada {name} for ({station})",
+        update_method=async_update_data,
+        update_interval=interval,
+    )
+    await coordinator.async_config_entry_first_refresh()
+    return coordinator
+
+
 async def async_setup_entry(hass, config_entry):
     """Set up EC as config entry."""
-    coordinator = ECDataUpdateCoordinator(hass, config_entry)
-    await coordinator.async_config_entry_first_refresh()
+    lat = config_entry.data.get(CONF_LATITUDE)
+    lon = config_entry.data.get(CONF_LONGITUDE)
+    station = config_entry.data.get(CONF_STATION)
+    lang = config_entry.data.get(CONF_LANGUAGE)
+
+    weather_data = ECWeather(
+        station_id=station,
+        coordinates=(lat, lon),
+        language=lang.lower(),
+    )
+    weather_coord = await create_coordinator(
+        hass, weather_data, "weather", station, DEFAULT_WEATHER_UPDATE_INTERVAL
+    )
+
+    radar_data = MyECRadar(coordinates=(lat, lon))
+    radar_coord = await create_coordinator(
+        hass, radar_data, "radar", station, DEFAULT_RADAR_UPDATE_INTERVAL
+    )
 
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][config_entry.entry_id] = coordinator
+    hass.data[DOMAIN][config_entry.entry_id] = {
+        "weather_coordinator": weather_coord,
+        "radar_coordinator": radar_coord,
+    }
 
     hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
 
@@ -60,66 +116,6 @@ async def async_unload_entry(hass, config_entry):
     return unload_ok
 
 
-class ECDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching EC data."""
-
-    def __init__(self, hass, config):
-        """Initialize global EC data updater."""
-        self.weather = ECWeatherData(config)
-        self.weather.init_env_canada()
-
-        super().__init__(
-            hass, _LOGGER, name=DOMAIN, update_interval=DEFAULT_UPDATE_INTERVAL
-        )
-
-    async def _async_update_data(self):
-        """Fetch data from EC."""
-        try:
-            return await self.weather.fetch_data()
-        except Exception as err:
-            raise UpdateFailed(f"Update failed: {err}") from err
-
-
-class ECWeatherData:
-    """Keep data for EC weather entities."""
-
-    def __init__(self, config):
-        """Initialise the weather entity data."""
-        self._config = config
-        self._weather_data = None
-
-        self.conditions = None
-        self.daily_forecast = None
-        self.hourly_forecast = None
-        self.alerts = None
-        self.metadata = None
-
-    def init_env_canada(self):
-        """Weather data inialization - set the coordinates."""
-        latitude = self._config.data.get(CONF_LATITUDE)
-        longitude = self._config.data.get(CONF_LONGITUDE)
-        station = self._config.data.get(CONF_STATION)
-        language = self._config.data.get(CONF_LANGUAGE)
-
-        self._weather_data = ECWeather(
-            station_id=station,
-            coordinates=(latitude, longitude),
-            language=language.lower(),
-        )
-
-        return True
-
-    async def fetch_data(self):
-        """Fetch data from EC API - (current weather, alerts, and forecast)."""
-        await self._weather_data.update()
-        self.conditions = self._weather_data.conditions
-        self.daily_forecast = self._weather_data.daily_forecasts
-        self.hourly_forecast = self._weather_data.hourly_forecasts
-        self.alerts = self._weather_data.alerts
-        self.metadata = self._weather_data.metadata
-        return self
-
-
 class ECBaseEntity:
     """Common base for EC weather."""
 
@@ -134,7 +130,7 @@ class ECBaseEntity:
         value = self._coordinator.data.conditions.get(key, {}).get("value")
         if value:
             return value
-        return self._coordinator.data.hourly_forecast[0].get(key)
+        return self._coordinator.data.hourly_forecasts[0].get(key)
 
     @property
     def name(self):

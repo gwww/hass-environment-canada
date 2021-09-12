@@ -45,7 +45,7 @@ MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=1)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the EC weather platform."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["weather_coordinator"]
 
     async_add_entities(
         ECSensor(
