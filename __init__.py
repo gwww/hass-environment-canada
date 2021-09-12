@@ -45,32 +45,7 @@ class MyECRadar(ECRadar):
         self.image = None
 
     async def update(self):
-        self.image = await self.get_loop()
-
-
-async def create_coordinator(hass, ec_data, name, station, interval):
-    """Create a data coordinator."""
-
-    async def async_update_data():
-        """Obtain data from EC."""
-        print(f"Coordinator update of {name}")
-        try:
-            await ec_data.update()
-        except Exception as err:
-            raise ECUpdateFailed(
-                f"Environment Canada {name} update failed: {err}"
-            ) from err
-        return ec_data
-
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=f"Environment Canada {name} for ({station})",
-        update_method=async_update_data,
-        update_interval=interval,
-    )
-    await coordinator.async_config_entry_first_refresh()
-    return coordinator
+        self.image = await self.get_loop(fps=2)
 
 
 async def async_setup_entry(hass, config_entry):
@@ -85,14 +60,16 @@ async def async_setup_entry(hass, config_entry):
         coordinates=(lat, lon),
         language=lang.lower(),
     )
-    weather_coord = await create_coordinator(
-        hass, weather_data, "weather", station, DEFAULT_WEATHER_UPDATE_INTERVAL
+    weather_coord = ECDataUpdateCoordinator(
+        hass, weather_data, "weather", DEFAULT_WEATHER_UPDATE_INTERVAL
     )
+    await weather_coord.async_config_entry_first_refresh()
 
     radar_data = MyECRadar(coordinates=(lat, lon))
-    radar_coord = await create_coordinator(
-        hass, radar_data, "radar", station, DEFAULT_RADAR_UPDATE_INTERVAL
+    radar_coord = ECDataUpdateCoordinator(
+        hass, radar_data, "radar", DEFAULT_RADAR_UPDATE_INTERVAL
     )
+    await radar_coord.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][config_entry.entry_id] = {
@@ -114,6 +91,28 @@ async def async_unload_entry(hass, config_entry):
     hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
+
+
+class ECDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching EC data."""
+
+    def __init__(self, hass, ec_data, name, update_interval):
+        """Initialize global EC data updater."""
+        self._ec_data = ec_data
+        self._name = name
+
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
+
+    async def _async_update_data(self):
+        """Fetch data from EC."""
+        print(f"Coordinator update of {self._name}")
+        try:
+            await self._ec_data.update()
+        except Exception as err:
+            raise ECUpdateFailed(
+                f"Environment Canada {self._name} update failed: {err}"
+            ) from err
+        return self._ec_data
 
 
 class ECBaseEntity:
