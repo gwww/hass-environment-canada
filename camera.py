@@ -16,7 +16,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.util import Throttle
 
-from . import ECUpdateFailed
+from . import ECUpdateFailed, ECBaseEntity
 from .const import (
     ATTRIBUTION_EN,
     ATTRIBUTION_FR,
@@ -53,16 +53,14 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     # )
 
 
-class ECCamera(Camera):
+class ECCamera(ECBaseEntity, Camera):
     """Implementation of an Environment Canada radar camera."""
 
     def __init__(self, coordinator, config):
         """Initialize the EC camera."""
-        super().__init__()
-
-        self._coordinator = coordinator
-        self._config = config
-        self._name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
+        name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
+        super().__init__(coordinator, config, name)
+        Camera.__init__(self)
 
         self.content_type = "image/gif"
         self.image = None
@@ -92,24 +90,10 @@ class ECCamera(Camera):
     #     await self.async_update(no_throttle=True)
 
     @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
     def unique_id(self):
         """Return unique ID."""
         # The combination of coords and language are unique for all EC weather reporting
         return f"{self._config[CONF_LATITUDE]}-{self._config[CONF_LONGITUDE]}-{self._config[CONF_LANGUAGE]}-radar"
-
-    @property
-    def attribution(self):
-        """Return the attribution."""
-        return (
-            ATTRIBUTION_EN
-            if self._config[CONF_LANGUAGE] == "English"
-            else ATTRIBUTION_FR
-        )
 
     @property
     def device_info(self):

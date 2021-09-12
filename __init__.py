@@ -14,7 +14,11 @@ from homeassistant.const import (
     LENGTH_FEET,
     LENGTH_METERS,
 )
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 from homeassistant.util.dt import utcnow
 import homeassistant.util.dt as dt_util
 
@@ -30,8 +34,8 @@ from .const import (
 
 PLATFORMS = ["camera", "sensor", "weather"]
 
-DEFAULT_WEATHER_UPDATE_INTERVAL = timedelta(minutes=1)
-DEFAULT_RADAR_UPDATE_INTERVAL = timedelta(minutes=1)
+DEFAULT_WEATHER_UPDATE_INTERVAL = timedelta(minutes=15)
+DEFAULT_RADAR_UPDATE_INTERVAL = timedelta(minutes=15)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,7 +109,6 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data from EC."""
-        print(f"Coordinator update of {self._name}")
         try:
             await self._ec_data.update()
         except Exception as err:
@@ -115,11 +118,12 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
         return self._ec_data
 
 
-class ECBaseEntity:
+class ECBaseEntity(CoordinatorEntity):
     """Common base for EC weather."""
 
     def __init__(self, coordinator, config, name):
         """Initialise the base for all EC entities."""
+        super().__init__(coordinator)
         self._coordinator = coordinator
         self._config = config
         self._name = name
