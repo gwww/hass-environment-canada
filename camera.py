@@ -54,7 +54,7 @@ class ECCamera(ECBaseEntity, Camera):
     def __init__(self, coordinator, config):
         """Initialize the EC camera."""
         name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
-        ECBaseEntity.__init__(coordinator, config, name)
+        ECBaseEntity.__init__(self, coordinator, config, name)
         Camera.__init__(self)
 
         self.content_type = "image/gif"
