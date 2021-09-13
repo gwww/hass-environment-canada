@@ -2,24 +2,19 @@
 from __future__ import annotations
 import datetime
 
-from env_canada import ECRadar
 import voluptuous as vol
 
-from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
+from homeassistant.components.camera import Camera
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
 )
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import entity_platform
-from homeassistant.util import Throttle
 
-from . import ECUpdateFailed, ECBaseEntity
+from . import ECBaseEntity
 from .const import (
-    ATTRIBUTION_EN,
-    ATTRIBUTION_FR,
     ATTR_OBSERVATION_TIME,
     CONF_LANGUAGE,
     DEFAULT_NAME,
@@ -47,10 +42,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     async_add_entities([ECCamera(coordinator, config_entry.data)], True)
 
-    # platform = entity_platform.async_get_current_platform()
-    # platform.async_register_entity_service(
-    #     SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "async_set_radar_type"
-    # )
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        SERVICE_SET_RADAR_TYPE, SET_RADAR_TYPE_SCHEMA, "async_set_radar_type"
+    )
 
 
 class ECCamera(ECBaseEntity, Camera):
@@ -59,7 +54,7 @@ class ECCamera(ECBaseEntity, Camera):
     def __init__(self, coordinator, config):
         """Initialize the EC camera."""
         name = f"{config.get(CONF_NAME, DEFAULT_NAME)} Radar"
-        super().__init__(coordinator, config, name)
+        ECBaseEntity.__init__(coordinator, config, name)
         Camera.__init__(self)
 
         self.content_type = "image/gif"
@@ -84,10 +79,10 @@ class ECCamera(ECBaseEntity, Camera):
             ATTR_OBSERVATION_TIME: self.timestamp,
         }
 
-    # async def async_set_radar_type(self, radar_type):
-    #     """Set the type of radar to display."""
-    #     self._radar_object.precip_type = radar_type.lower()
-    #     await self.async_update(no_throttle=True)
+    async def async_set_radar_type(self, radar_type):
+        """Set the type of radar to display."""
+        self._coordinator.ec_data.precip_type = radar_type.lower()
+        await self._coordinator.async_config_entry_first_refresh()
 
     @property
     def unique_id(self):

@@ -273,3 +273,12 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
         unit_convert=None,
     ),
 )
+
+AQHI_SENSOR = ECSensorEntityDescription(
+    key="aqhi",
+    name="AQHI",
+    icon="mdi:sign-direction",
+    device_class=None,
+    native_unit_of_measurement=None,
+    unit_convert=None,
+)
