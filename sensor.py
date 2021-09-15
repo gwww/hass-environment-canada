@@ -85,6 +85,8 @@ class ECSensor(ECBaseEntity, SensorEntity):
 
         if key == "pressure":
             value = value * 10  # Convert kPa to hPa
+        elif isinstance(value, str) and len(value) > 254:
+            value = value[:254]
 
         if self._is_metric:
             return value
