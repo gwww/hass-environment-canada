@@ -27,7 +27,7 @@ CONF_LOOP = "loop"
 CONF_PRECIP_TYPE = "precip_type"
 CONF_RADAR_TYPE = "radar_type"
 
-MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=10)
+MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=5)
 SERVICE_SET_RADAR_TYPE = "set_radar_type"
 
 SET_RADAR_TYPE_SCHEMA = {
@@ -100,3 +100,8 @@ class ECCamera(ECBaseEntity, Camera):
             "default_name": "Weather Radar",
             "entry_type": "service",
         }
+
+    @property
+    def icon(self):
+        """Return the icon."""
+        return "mdi:radar"

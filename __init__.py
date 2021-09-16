@@ -34,8 +34,8 @@ from .const import (
 
 PLATFORMS = ["camera", "sensor", "weather"]
 
-DEFAULT_WEATHER_UPDATE_INTERVAL = timedelta(minutes=15)
-DEFAULT_RADAR_UPDATE_INTERVAL = timedelta(minutes=15)
+DEFAULT_WEATHER_UPDATE_INTERVAL = timedelta(minutes=5)
+DEFAULT_RADAR_UPDATE_INTERVAL = timedelta(minutes=5)
 
 _LOGGER = logging.getLogger(__name__)
 

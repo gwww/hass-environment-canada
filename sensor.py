@@ -33,9 +33,7 @@ ALERTS = [
     ("warnings", "Warning", "mdi:alert-octagon"),
     ("watches", "Watch", "mdi:alert"),
 ]
-MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=30)
-MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=1)
-
+MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=5)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the EC weather platform."""
@@ -84,7 +82,9 @@ class ECSensor(ECBaseEntity, SensorEntity):
             return None
 
         if key == "pressure":
-            value = value * 10  # Convert kPa to hPa
+            value = int(value * 10)  # Convert kPa to hPa
+        elif key == "tendency":
+            value = value.title()
         elif isinstance(value, str) and len(value) > 254:
             value = value[:254]
 
