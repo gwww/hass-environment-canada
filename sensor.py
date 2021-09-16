@@ -82,7 +82,9 @@ class ECSensor(ECBaseEntity, SensorEntity):
             return None
 
         if key == "pressure":
-            value = value * 10  # Convert kPa to hPa
+            value = int(value * 10)  # Convert kPa to hPa
+        elif key == "tendency":
+            value = value.title()
         elif isinstance(value, str) and len(value) > 254:
             value = value[:254]
 
