@@ -2,7 +2,7 @@
 from datetime import timedelta
 import logging
 
-from env_canada import ECWeather, ECRadar
+from env_canada import ECWeather, ECRadar, ECAirQuality
 
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
@@ -75,10 +75,17 @@ async def async_setup_entry(hass, config_entry):
     )
     await radar_coord.async_config_entry_first_refresh()
 
+    aqhi_data = ECAirQuality(coordinates=(lat, lon))
+    aqhi_coord = ECDataUpdateCoordinator(
+        hass, aqhi_data, "AQHI", DEFAULT_WEATHER_UPDATE_INTERVAL
+    )
+    await aqhi_coord.async_config_entry_first_refresh()
+
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][config_entry.entry_id] = {
         "weather_coordinator": weather_coord,
         "radar_coordinator": radar_coord,
+        "aqhi_coordinator": aqhi_coord,
     }
 
     hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
@@ -102,7 +109,7 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass, ec_data, name, update_interval):
         """Initialize global EC data updater."""
-        self._ec_data = ec_data
+        self.ec_data = ec_data
         self._name = name
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
@@ -110,12 +117,12 @@ class ECDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Fetch data from EC."""
         try:
-            await self._ec_data.update()
+            await self.ec_data.update()
         except Exception as err:
             raise ECUpdateFailed(
                 f"Environment Canada {self._name} update failed: {err}"
             ) from err
-        return self._ec_data
+        return self.ec_data
 
 
 class ECBaseEntity(CoordinatorEntity):
@@ -179,5 +186,3 @@ class ECBaseEntity(CoordinatorEntity):
 
 class ECUpdateFailed(Exception):
     """Raised when an update fails to get data from Environment Canada."""
-
-    pass

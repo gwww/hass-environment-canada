@@ -1,12 +1,8 @@
 """Sensors for Environment Canada (EC)."""
 import datetime
-from env_canada import ECAirQuality
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (
-    ATTR_ATTRIBUTION,
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
     CONF_NAME,
     LENGTH_KILOMETERS,
     LENGTH_METERS,
@@ -19,12 +15,10 @@ from homeassistant.const import (
 )
 from homeassistant.util.distance import convert as convert_distance
 from homeassistant.util.pressure import convert as convert_pressure
-from homeassistant.util import Throttle
 
-from . import ECBaseEntity, ECUpdateFailed
+from . import ECBaseEntity
 from .const import (
-    ATTRIBUTION_EN,
-    ATTRIBUTION_FR,
+    AQHI_SENSOR,
     CONF_LANGUAGE,
     CONF_STATION,
     DEFAULT_NAME,
@@ -44,7 +38,6 @@ MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=5)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the EC weather platform."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["weather_coordinator"]
-
     async_add_entities(
         ECSensor(
             coordinator, config_entry.data, description, hass.config.units.is_metric
@@ -53,6 +46,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
     async_add_entities(
         ECAlertSensor(coordinator, config_entry.data, alert) for alert in ALERTS
+    )
+
+    aqhi_coordinator = hass.data[DOMAIN][config_entry.entry_id]["aqhi_coordinator"]
+    async_add_entities(
+        [ECSensor(aqhi_coordinator, config_entry.data, AQHI_SENSOR, True)]
     )
 
 
@@ -78,12 +76,15 @@ class ECSensor(ECBaseEntity, SensorEntity):
     def native_value(self):
         """Return the state."""
         key = self._entity_description.key
-        value = self.get_value(key)
+        value = self._coordinator.data.current if key == "aqhi" else self.get_value(key)
+
         if value is None:
             return None
 
         if key == "pressure":
-            value = int(value * 10)  # Convert kPa to hPa
+            value = value * 10  # Convert kPa to hPa
+        elif isinstance(value, str) and len(value) > 254:
+            value = value[:254]
 
         if self._is_metric:
             return value
