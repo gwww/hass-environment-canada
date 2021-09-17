@@ -272,6 +272,22 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
         native_unit_of_measurement=None,
         unit_convert=None,
     ),
+    ECSensorEntityDescription(
+        key="normal_low",
+        name="Normal Low Temperature",
+        icon="mdi:thermometer-chevron-down",
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
+    ECSensorEntityDescription(
+        key="normal_high",
+        name="Normal High Temperature",
+        icon="mdi:thermometer-chevron-up",
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_convert=TEMP_CELSIUS,
+    ),
 )
 
 AQHI_SENSOR = ECSensorEntityDescription(
